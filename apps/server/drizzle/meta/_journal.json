@@ -1,0 +1,55 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1788536389439,
+      "tag": "0000_narrow_roulette",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1788545693120,
+      "tag": "0001_exotic_war_machine",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1788553028926,
+      "tag": "0002_easy_loners",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1788779337029,
+      "tag": "0003_clean_cerebro",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1788791574697,
+      "tag": "0004_clean_blockbuster",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1788794509046,
+      "tag": "0005_brainy_redwing",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1789387240263,
+      "tag": "0006_nasty_scorpion",
+      "breakpoints": true
+    }
+  ]
+}

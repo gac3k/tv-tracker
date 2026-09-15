@@ -1,0 +1,94 @@
+:root {
+  color-scheme: dark;
+
+  --color-paper: oklch(14% 0.012 265);
+  --color-paper-2: oklch(18% 0.014 265);
+  --color-paper-3: oklch(23% 0.016 265);
+  --color-paper-rail: oklch(11% 0.012 265);
+  --color-line: oklch(30% 0.018 265);
+  --color-line-soft: oklch(25% 0.014 265);
+
+  --color-ink: oklch(94% 0.008 265);
+  --color-ink-2: oklch(72% 0.014 265);
+  --color-ink-3: oklch(56% 0.016 265);
+
+  --color-accent: oklch(66% 0.19 28);
+  --color-accent-dim: oklch(48% 0.13 28);
+  --color-ok: oklch(72% 0.16 152);
+  --color-warn: oklch(78% 0.15 78);
+  --color-focus: oklch(78% 0.14 250);
+
+  --color-netflix: oklch(58% 0.21 27);
+  --color-prime: oklch(70% 0.14 230);
+  --color-max: oklch(62% 0.19 295);
+  --color-apple: oklch(80% 0.02 265);
+  --color-disney: oklch(64% 0.16 258);
+  --color-jellyfin: oklch(68% 0.14 230);
+  --color-justwatch: oklch(82% 0.18 95);
+  --color-mcp: oklch(62% 0.14 250);
+
+  --font-display: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-body: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace;
+
+  --text-xs: 0.6875rem;
+  --text-sm: 0.8125rem;
+  --text-base: 0.9375rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.5rem;
+  --text-2xl: 2rem;
+
+  --space-2xs: 0.25rem;
+  --space-xs: 0.5rem;
+  --space-sm: 0.75rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 3rem;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-pill: 999px;
+
+  --dur-fast: 120ms;
+  --dur-mid: 220ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+  --bloom-a: oklch(40% 0.12 28 / 0.18);
+  --bloom-b: oklch(32% 0.08 265 / 0.22);
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+
+  --color-paper: oklch(97% 0.006 265);
+  --color-paper-2: oklch(99% 0.004 265);
+  --color-paper-3: oklch(93% 0.008 265);
+  --color-paper-rail: oklch(95% 0.006 265);
+  --color-line: oklch(82% 0.012 265);
+  --color-line-soft: oklch(88% 0.01 265);
+
+  --color-ink: oklch(18% 0.02 265);
+  --color-ink-2: oklch(38% 0.016 265);
+  --color-ink-3: oklch(52% 0.014 265);
+
+  --color-accent: oklch(55% 0.19 28);
+  --color-accent-dim: oklch(62% 0.12 28);
+  --color-ok: oklch(48% 0.14 152);
+  --color-warn: oklch(58% 0.14 78);
+  --color-focus: oklch(50% 0.14 250);
+
+  --color-netflix: oklch(52% 0.21 27);
+  --color-prime: oklch(52% 0.14 230);
+  --color-max: oklch(48% 0.19 295);
+  --color-apple: oklch(22% 0.02 265);
+  --color-disney: oklch(48% 0.16 258);
+  --color-jellyfin: oklch(50% 0.14 230);
+  --color-justwatch: oklch(62% 0.16 95);
+  --color-mcp: oklch(48% 0.14 250);
+
+  --bloom-a: oklch(78% 0.06 28 / 0.22);
+  --bloom-b: oklch(86% 0.03 265 / 0.28);
+}

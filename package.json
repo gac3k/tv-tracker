@@ -1,0 +1,24 @@
+{
+  "name": "vod-tracker",
+  "version": "0.1.0",
+  "private": true,
+  "release": {
+    "branches": ["main"],
+    "plugins": [
+      "@semantic-release/commit-analyzer",
+      "@semantic-release/release-notes-generator",
+      "@semantic-release/github"
+    ]
+  },
+  "scripts": {
+    "cli": "pnpm --filter @vod/server cli",
+    "dev": "pnpm -r --parallel dev",
+    "dev:server": "pnpm --filter @vod/server dev",
+    "dev:web": "pnpm --filter @vod/web dev",
+    "build": "pnpm -r build",
+    "start": "pnpm --filter @vod/server start",
+    "test": "pnpm -r test",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "pnpm -r lint"
+  }
+}

@@ -1,0 +1,85 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+      packages: write
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+
+      # semantic-release's first tag is always 1.0.0; seed 0.1.0 once instead.
+      - name: Initial release 0.1.0
+        id: initial
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ "$(gh api "/repos/${GITHUB_REPOSITORY}/git/matching-refs/tags/v" --jq 'length')" -eq 0 ]; then
+            gh release create v0.1.0 --title v0.1.0 --notes "Initial release."
+            echo "published=true" >> "$GITHUB_OUTPUT"
+            echo "version=0.1.0" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Semantic Release
+        id: release
+        if: steps.initial.outputs.published != 'true'
+        uses: cycjimmy/semantic-release-action@v6
+        with:
+          semantic_version: 24
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Release metadata
+        id: meta
+        if: steps.initial.outputs.published == 'true' || steps.release.outputs.new_release_published == 'true'
+        run: |
+          echo "image=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+          echo "version=${{ steps.initial.outputs.version || steps.release.outputs.new_release_version }}" >> "$GITHUB_OUTPUT"
+
+      - name: Login to GHCR
+        if: steps.meta.outputs.version != ''
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        if: steps.meta.outputs.version != ''
+        uses: docker/setup-buildx-action@v3
+
+      - name: Push image
+        if: steps.meta.outputs.version != ''
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.version }}
+            ${{ steps.meta.outputs.image }}:latest
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.version=${{ steps.meta.outputs.version }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

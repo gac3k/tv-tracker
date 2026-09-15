@@ -1,0 +1,44 @@
+{
+  "name": "@vod/server",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local self-hosted VOD watch-history tracker (Netflix first)",
+  "license": "MIT",
+  "scripts": {
+    "cli": "tsx src/cli.ts",
+    "dev": "tsx src/main.ts",
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node dist/main.js",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src tests",
+    "db:generate": "drizzle-kit generate"
+  },
+  "dependencies": {
+    "@nestjs/common": "^12.0.1",
+    "@nestjs/core": "^12.0.1",
+    "@nestjs/platform-fastify": "^12.0.1",
+    "better-sqlite3": "^12.2.0",
+    "bullmq": "^5.65.1",
+    "drizzle-orm": "^0.44.4",
+    "fastify": "^5.4.0",
+    "pino": "^9.7.0",
+    "playwright": "^1.55.0",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2",
+    "ws": "^8.21.3",
+    "zod": "^4.1.5"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^24.3.0",
+    "@types/ws": "^8.18.1",
+    "drizzle-kit": "^0.31.4",
+    "eslint": "^9.34.0",
+    "pino-pretty": "^13.1.1",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2",
+    "typescript-eslint": "^8.42.0",
+    "vitest": "^3.2.4"
+  }
+}

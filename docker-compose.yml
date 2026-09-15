@@ -1,0 +1,33 @@
+# Headless deployment: runs the sync engine + REST API. Provider login is a
+# one-time step done separately (see README "Headless / remote setup").
+services:
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - vod-redis:/data
+
+  vod-tracker:
+    build: .
+    image: vod-tracker:latest
+    restart: unless-stopped
+    depends_on:
+      - redis
+    # Expose the API only on localhost of the host by default. Change to
+    # "3000:3000" (and set a reverse proxy / auth) to reach it from the LAN.
+    ports:
+      - "127.0.0.1:3000:3000"
+    environment:
+      REDIS_URL: redis://redis:6379
+      SYNC_INTERVAL_MINUTES: "60"
+      LOG_LEVEL: "info"
+    volumes:
+      # Browser profiles (credentials!) + SQLite. Back this up; keep it private.
+      - vod-data:/data
+
+volumes:
+  vod-data:
+  vod-redis:
