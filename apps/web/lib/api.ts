@@ -1,5 +1,8 @@
 // Server-side API client. Response shapes mirror @vod/server REST responses.
-const API_URL = process.env.API_URL ?? "http://127.0.0.1:3000";
+// Bracket access so Next does not inline this at build time (Docker sets API_URL at runtime).
+function apiUrl(): string {
+  return process.env["API_URL"] ?? "http://127.0.0.1:3000";
+}
 
 export const PROVIDER_LABELS: Record<string, string> = {
   netflix: "Netflix",
@@ -161,7 +164,7 @@ export interface JobsResponse {
 
 async function get<T>(path: string): Promise<T | null> {
   try {
-    const res = await fetch(`${API_URL}${path}`, { cache: "no-store" });
+    const res = await fetch(`${apiUrl()}${path}`, { cache: "no-store" });
     if (!res.ok) return null;
     return (await res.json()) as T;
   } catch {

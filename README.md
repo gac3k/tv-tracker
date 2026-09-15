@@ -156,19 +156,19 @@ required (`REDIS_URL`, default `redis://127.0.0.1:6379`).
 
 ## Deployment (Docker / headless)
 
-A `Dockerfile` (built on the official Playwright image, so Chromium + all its
-system libraries are included) and a `docker-compose.yml` are provided. The
-container runs the **sync engine + REST API only** — headless.
+`Dockerfile` is the Playwright-based **sync engine + REST API**. `Dockerfile.web`
+is the Next.js dashboard. `docker-compose.yml` runs both (plus Redis).
 
 ```bash
 docker compose up -d --build
-# API on 127.0.0.1:3000 (change the compose port mapping to expose it wider)
+# API on 127.0.0.1:3000, dashboard on 127.0.0.1:3001
 ```
 
-Pushes to `main` cut a GitHub Release and publish `ghcr.io/<owner>/<repo>:<version>`
-(and `:latest`) to GitHub Packages. The first release is `0.1.0`; later versions
-come from [Conventional Commits](https://www.conventionalcommits.org/) (`feat:` →
-minor, `fix:` → patch).
+Pushes to `main` cut a GitHub Release and publish two images to GitHub Packages:
+`ghcr.io/<owner>/<repo>/server:<version>` and `.../web:<version>` (and `:latest`).
+The first release is `0.1.0`; later versions come from
+[Conventional Commits](https://www.conventionalcommits.org/) (`feat:` → minor,
+`fix:` → patch).
 
 The `vod-data` volume holds both the SQLite database and the browser profiles
 (`/data/browser/<provider>`). **Treat that volume as a credential store** — it

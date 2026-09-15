@@ -11,7 +11,9 @@ services:
       - vod-redis:/data
 
   vod-tracker:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     image: vod-tracker:latest
     restart: unless-stopped
     depends_on:
@@ -27,6 +29,19 @@ services:
     volumes:
       # Browser profiles (credentials!) + SQLite. Back this up; keep it private.
       - vod-data:/data
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    image: vod-tracker-web:latest
+    restart: unless-stopped
+    depends_on:
+      - vod-tracker
+    ports:
+      - "127.0.0.1:3001:3001"
+    environment:
+      API_URL: http://vod-tracker:3000
 
 volumes:
   vod-data:
