@@ -2,16 +2,19 @@
 # Chromium and all its system libraries are already present (unlike a bare node
 # image). Interactive `login` needs a display — see README "Headless / remote
 # setup" for how to authenticate providers on a server with no screen.
-FROM mcr.microsoft.com/playwright:v1.55.0-jammy AS base
+# Image tag must match the playwright version in pnpm-lock.yaml.
+FROM mcr.microsoft.com/playwright:v1.62.1-noble AS base
 ENV PNPM_HOME=/pnpm
 ENV PATH=$PNPM_HOME:$PATH
-RUN corepack enable
+# The image's corepack still looks for bin/pnpm.cjs, which pnpm 11+/12 dropped.
+RUN npm install -g pnpm@11.25.0
 WORKDIR /app
 
 # Install dependencies (cached on lockfile changes).
 FROM base AS deps
 COPY pnpm-workspace.yaml pnpm-lock.yaml package.json ./
 COPY apps/server/package.json apps/server/package.json
+COPY apps/web/package.json apps/web/package.json
 RUN pnpm install --frozen-lockfile --filter @vod/server...
 
 # Build the server to dist/.
