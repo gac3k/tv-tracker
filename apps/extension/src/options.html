@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>vod-tracker options</title>
+    <link rel="stylesheet" href="ui.css" />
+  </head>
+  <body class="page">
+    <main>
+      <h1>vod-tracker</h1>
+      <p class="lede">
+        Point this extension at the tracker you open in the browser (the dashboard is enough —
+        it forwards to the API). Paste the token from Settings. Sessions are read from Firefox
+        and sent once — nothing is kept here afterwards.
+      </p>
+      <form id="form">
+        <label>
+          Tracker URL
+          <input id="apiUrl" type="url" required placeholder="http://tv.lan:3001" autocomplete="off" />
+        </label>
+        <label>
+          Extension token
+          <input id="token" type="password" required minlength="16" autocomplete="off" />
+        </label>
+        <p class="hint">Same URL as the dashboard is fine. HTTP is allowed on localhost, private IPs, *.lan and *.local.</p>
+        <button type="submit">Save</button>
+        <p id="status" class="status" role="status"></p>
+      </form>
+    </main>
+    <script type="module" src="options.js"></script>
+  </body>
+</html>

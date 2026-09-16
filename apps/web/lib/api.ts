@@ -32,6 +32,8 @@ export interface ProviderCatalogItem {
   kind: "source" | "plugin";
   exportWatched: boolean;
   fields: ProviderField[];
+  cookieDomains: string[];
+  loginUrl: string | null;
   enabled: boolean;
   includeData: boolean;
   values: Record<string, string | null>;
@@ -174,6 +176,7 @@ async function get<T>(path: string): Promise<T | null> {
 
 export const api = {
   providers: () => get<{ providers: ProviderCatalogItem[] }>("/providers"),
+  extension: () => get<{ token: string }>("/extension"),
   status: (provider: string) => get<ProviderStatus>(`/providers/${provider}/status`),
   jobs: () => get<JobsResponse>("/jobs"),
   job: (id: number) => get<JobRunDetail>(`/jobs/${id}`),

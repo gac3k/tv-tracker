@@ -1,0 +1,46 @@
+{
+  "manifest_version": 3,
+  "name": "vod-tracker",
+  "version": "0.1.0",
+  "description": "Import streaming login sessions into a self-hosted vod-tracker.",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "vod-tracker@local",
+      "strict_min_version": "115.0"
+    }
+  },
+  "permissions": ["cookies", "storage"],
+  "host_permissions": [
+    "http://127.0.0.1/*",
+    "http://localhost/*",
+    "https://netflix.com/*",
+    "https://*.netflix.com/*",
+    "https://primevideo.com/*",
+    "https://*.primevideo.com/*",
+    "https://amazon.com/*",
+    "https://*.amazon.com/*",
+    "https://hbomax.com/*",
+    "https://*.hbomax.com/*",
+    "https://max.com/*",
+    "https://*.max.com/*",
+    "https://apple.com/*",
+    "https://*.apple.com/*",
+    "https://disneyplus.com/*",
+    "https://*.disneyplus.com/*",
+    "https://bamgrid.com/*",
+    "https://*.bamgrid.com/*"
+  ],
+  "optional_host_permissions": ["*://*/*"],
+  "background": {
+    "scripts": ["background.js"],
+    "type": "module"
+  },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
+  "action": {
+    "default_title": "vod-tracker",
+    "default_popup": "popup.html"
+  }
+}

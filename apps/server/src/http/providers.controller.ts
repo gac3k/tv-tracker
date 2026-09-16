@@ -3,6 +3,7 @@ import {
   Body,
   Controller,
   Get,
+  Headers,
   HttpException,
   Inject,
   NotFoundException,
@@ -19,6 +20,8 @@ import { BrowserProfileBusyError, ProviderAuthenticationError } from "../provide
 import { mergeProviderValues, redactValues } from "../providers/registry.service";
 import { ProviderRegistry } from "../providers/registry.service";
 import { SyncQueue } from "../jobs/sync.queue";
+import { assertExtensionToken } from "../extension-token";
+import { parseImportedCookies, writeImportedCookies } from "../browser/cookies";
 
 const patchSchema = z.object({
   enabled: z.boolean().optional(),
@@ -113,6 +116,33 @@ export class ProvidersController {
     return this.toCatalog(name);
   }
 
+  /**
+   * Import cookies captured by the browser extension. Written as cookies.json
+   * inside the provider profile and applied on the next Chromium launch.
+   */
+  @Post(":provider/session")
+  importSession(
+    @Param("provider") name: string,
+    @Body() body: unknown,
+    @Headers("authorization") authorization: string | undefined
+  ) {
+    assertExtensionToken(authorization);
+    const entry = this.lookup(name);
+    const domains = "cookieDomains" in entry.meta ? (entry.meta.cookieDomains ?? []) : [];
+    if (entry.meta.auth !== "browser" || domains.length === 0) {
+      throw new BadRequestException("Provider does not accept browser sessions");
+    }
+    try {
+      const cookies = parseImportedCookies(body, domains);
+      writeImportedCookies(name, cookies);
+      logger.info({ provider: name, imported: cookies.length }, "stored imported browser session");
+      return { provider: name, saved: cookies.length };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Invalid session payload";
+      throw new BadRequestException(message);
+    }
+  }
+
   @Post(":provider/sync")
   async triggerSync(@Param("provider") name: string) {
     if (!this.registry.has(name) && !this.plugins.has(name)) {
@@ -152,6 +182,8 @@ export class ProvidersController {
       kind: plugin ? "plugin" : "source",
       exportWatched: plugin ? "on" in entry.instance : false,
       fields: entry.meta.fields,
+      cookieDomains: "cookieDomains" in entry.meta ? (entry.meta.cookieDomains ?? []) : [],
+      loginUrl: "loginUrl" in entry.meta ? (entry.meta.loginUrl ?? null) : null,
       enabled: entry.settings.enabled,
       includeData: entry.settings.includeData,
       values: redactValues(entry.meta.fields, entry.settings.values),

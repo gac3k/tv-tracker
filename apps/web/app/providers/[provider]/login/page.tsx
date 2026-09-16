@@ -27,6 +27,10 @@ export default async function ProviderLoginPage({
           {label} already looks signed in — you only need this if the session expired.
         </p>
       )}
+      <p className="hint">
+        Already signed in in Firefox? Save the session from the vod-tracker extension instead of
+        typing credentials into this window.
+      </p>
       <RemoteLoginConsole provider={provider} />
     </Overlay>
   );

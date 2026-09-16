@@ -1,0 +1,13 @@
+{
+  "name": "@vod/extension",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc && cp src/*.html src/*.css manifest.json dist/ && node pack.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2"
+  }
+}

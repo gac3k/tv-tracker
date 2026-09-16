@@ -22,6 +22,8 @@ export interface ContentProviderMeta {
   parserVersion: string;
   /** Start URL for browser login. Required when auth is `browser`. */
   loginUrl?: string;
+  /** Hosts whose cookies the browser extension may import (registrable domains). */
+  cookieDomains?: string[];
 }
 
 interface RegistryEntry {

@@ -1,0 +1,115 @@
+:root {
+  color-scheme: dark;
+  --paper: oklch(14% 0.012 265);
+  --paper-2: oklch(18% 0.014 265);
+  --line: oklch(30% 0.018 265);
+  --ink: oklch(94% 0.008 265);
+  --ink-2: oklch(72% 0.014 265);
+  --accent: oklch(66% 0.19 28);
+  --ok: oklch(72% 0.16 152);
+  --bad: oklch(66% 0.19 28);
+  --radius: 6px;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.page {
+  padding: 1.5rem;
+  max-width: 32rem;
+}
+
+.popup {
+  width: 22rem;
+  padding: 0.75rem;
+}
+
+h1 {
+  margin: 0 0 0.5rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.lede,
+.hint {
+  color: var(--ink-2);
+  font-size: 0.8125rem;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin: 0.75rem 0;
+  font-size: 0.8125rem;
+}
+
+input {
+  padding: 0.4rem 0.55rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper-2);
+  color: var(--ink);
+}
+
+button {
+  padding: 0.35rem 0.7rem;
+  border: 0;
+  border-radius: var(--radius);
+  background: var(--accent);
+  color: oklch(18% 0.02 28);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.status {
+  min-height: 1.4em;
+  font-size: 0.8125rem;
+  color: var(--ink-2);
+}
+
+.status[data-kind="ok"] {
+  color: var(--ok);
+}
+
+.status[data-kind="bad"] {
+  color: var(--bad);
+}
+
+ul {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0;
+}
+
+li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.45rem 0;
+  border-top: 1px solid var(--line);
+}

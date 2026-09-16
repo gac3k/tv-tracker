@@ -12,6 +12,7 @@ import { ShowsService } from "./shows/shows.service";
 import { RemoteLoginController } from "./http/remote-login.controller";
 import { RemoteLoginService } from "./remote-login/remote-login.service";
 import { ProvidersController } from "./http/providers.controller";
+import { ExtensionController } from "./http/extension.controller";
 import { ObservationsService } from "./observations/observations.service";
 import { SessionsService } from "./sessions/sessions.service";
 import { ProviderRegistry } from "./providers/registry.service";
@@ -24,6 +25,7 @@ import { SyncQueue } from "./jobs/sync.queue";
 @Module({
   controllers: [
     ProvidersController,
+    ExtensionController,
     HistoryController,
     LibraryController,
     WatchlistController,

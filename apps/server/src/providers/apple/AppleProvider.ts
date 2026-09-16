@@ -31,6 +31,7 @@ const log = logger.child({ provider: "apple" });
   fields: [],
   parserVersion: APPLE_PARSER_VERSION,
   loginUrl: APPLE_HOME,
+  cookieDomains: ["apple.com"],
 })
 export class AppleProvider implements VodProvider {
   readonly name = "apple" as const;

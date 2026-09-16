@@ -3,4 +3,5 @@ dist/
 .data/
 *.log
 .env
+*.xpi
 proxmox-jobs.sqlite3*

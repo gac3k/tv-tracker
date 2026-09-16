@@ -33,6 +33,8 @@ const log = logger.child({ provider: "prime" });
   fields: [],
   parserVersion: PRIME_PARSER_VERSION,
   loginUrl: PRIME_HOME,
+  // ponytail: amazon.com only; add regional amazon.* hosts if Prime login lives there
+  cookieDomains: ["primevideo.com", "amazon.com"],
 })
 export class PrimeProvider implements VodProvider {
   readonly name = "prime" as const;

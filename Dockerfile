@@ -15,6 +15,7 @@ FROM base AS deps
 COPY pnpm-workspace.yaml pnpm-lock.yaml package.json ./
 COPY apps/server/package.json apps/server/package.json
 COPY apps/web/package.json apps/web/package.json
+COPY apps/extension/package.json apps/extension/package.json
 RUN pnpm install --frozen-lockfile --filter @vod/server...
 
 # Build the server to dist/.

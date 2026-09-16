@@ -31,6 +31,7 @@ const log = logger.child({ provider: "max" });
   fields: [],
   parserVersion: MAX_PARSER_VERSION,
   loginUrl: MAX_HOME,
+  cookieDomains: ["max.com", "hbomax.com"],
 })
 export class MaxProvider implements VodProvider {
   readonly name = "max" as const;

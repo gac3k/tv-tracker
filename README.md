@@ -42,6 +42,7 @@ Monorepo layout (pnpm workspaces):
 ```text
 apps/server   NestJS API + CLI + provider adapters (@vod/server)
 apps/web      Next.js dashboard (@vod/web) — proxies /api/* to the API server
+apps/extension Firefox MV3 add-on (@vod/extension) — imports provider cookies into the API
 ```
 
 - **Observations** are immutable data points ("content X was at 53% at time T").
@@ -229,6 +230,27 @@ run a virtual X server and a VNC bridge, set `DISPLAY`, and use
 `pnpm cli login <provider>`. `cli login` detects a missing `$DISPLAY` and prints
 this guidance. Heavier than Option 2 and needs extra packages.
 
+**Option 4 — the Firefox extension (reuse a login you already have).**
+If you are already signed in to Netflix (etc.) in Firefox, the extension can
+copy that session into vod-tracker — no Playwright window, no profile copy.
+
+```bash
+pnpm --filter @vod/extension build
+```
+
+Then in Firefox: `about:debugging` → This Firefox → Load Temporary Add-on →
+select `apps/extension/vod-tracker.xpi`. Open the tracker **Settings** page,
+copy the extension token, and paste it into the add-on options together with
+the dashboard URL (`http://127.0.0.1:3001` locally, or e.g. `http://tv.lan:3001`).
+The extension probes `/health` on the API and `/api/health` on the dashboard and
+uses whichever answers. HTTP is allowed on localhost, private IPs, `*.lan` and
+`*.local`. The popup **Save session** button sends cookies once; they are not
+stored in the extension.
+
+Temporary add-ons unload when Firefox restarts. An unsigned `.xpi` cannot be
+installed permanently on Release Firefox (AMO signature). Chrome is the same
+MV3 shape and is not wired yet (`background.scripts` vs `service_worker`).
+
 Apple TV and Disney+ read the DOM, so their login only needs you to be signed in
 on the site; Netflix, Prime and Max read account APIs with the session cookies.
 
@@ -249,6 +271,9 @@ curl http://127.0.0.1:3000/now-playing
 curl http://127.0.0.1:3000/jobs
 curl http://127.0.0.1:3000/jobs/1
 curl -X POST http://127.0.0.1:3000/jobs
+curl http://127.0.0.1:3000/extension
+curl -X POST http://127.0.0.1:3000/providers/netflix/session \
+  -H "Authorization: Bearer <extension-token>"
 ```
 
 - `/history` — derived playback sessions (newest first).
@@ -269,6 +294,10 @@ curl -X POST http://127.0.0.1:3000/jobs
 - `/jobs` — recent sync jobs (status, duration, per-provider summary).
   `GET /jobs/:id` is the debug log for one run. `POST /jobs` enqueues a sync
   of every enabled provider (`{ "provider": "netflix" }` for one).
+- `/extension` — Bearer token for the browser extension (same trust model as
+  the rest of the unauthenticated API). `POST /providers/:provider/session`
+  accepts cookies from that extension and writes them into the provider
+  profile (`0600`). Cookie values are never logged or returned.
 
 ## Database
 

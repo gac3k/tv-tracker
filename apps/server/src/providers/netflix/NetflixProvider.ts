@@ -32,6 +32,7 @@ const log = logger.child({ provider: "netflix" });
   fields: [],
   parserVersion: NETFLIX_PARSER_VERSION,
   loginUrl: `${NETFLIX_HOME}/login`,
+  cookieDomains: ["netflix.com"],
 })
 export class NetflixProvider implements VodProvider {
   readonly name = "netflix" as const;

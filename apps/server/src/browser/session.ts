@@ -1,6 +1,7 @@
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import { chromium, type BrowserContext } from "playwright";
+import { applyImportedCookies } from "./cookies";
 import { config } from "../config";
 import { logger } from "../logger";
 import { BrowserProfileBusyError, ProviderError } from "../providers/errors";
@@ -48,6 +49,10 @@ export async function openBrowserContext(
     const context = await chromium.launchPersistentContext(profileDir, launchOptions(opts.headless));
     // tsx/esbuild keepNames injects __name() into serialized page.evaluate() callbacks.
     await context.addInitScript("globalThis.__name ??= (f) => f");
+    const imported = await applyImportedCookies(context, provider);
+    if (imported) {
+      logger.info({ provider, imported: imported }, "applied imported browser session");
+    }
     return context;
     // Chromium refuses to run two processes on one profile dir, which is
     // exactly what we want: sync cannot run while interactive login is open.

@@ -33,6 +33,7 @@ const log = logger.child({ provider: "disney" });
   fields: [],
   parserVersion: DISNEY_PARSER_VERSION,
   loginUrl: `${DISNEY_HOME}/login`,
+  cookieDomains: ["disneyplus.com", "bamgrid.com"],
 })
 export class DisneyProvider implements VodProvider {
   readonly name = "disney" as const;
