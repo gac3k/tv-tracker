@@ -91,6 +91,8 @@ jobs:
           context: .
           file: ${{ matrix.file }}
           push: true
+          build-args: |
+            VERSION=${{ needs.release.outputs.version }}
           tags: |
             ${{ steps.image.outputs.name }}:${{ needs.release.outputs.version }}
             ${{ steps.image.outputs.name }}:latest

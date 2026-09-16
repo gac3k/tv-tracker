@@ -2,6 +2,7 @@ import { BadRequestException, Controller, Get, Inject, Query } from "@nestjs/com
 import { z } from "zod";
 import { ObservationsService } from "../observations/observations.service";
 import { SessionsService } from "../sessions/sessions.service";
+import { appVersion } from "../version";
 
 const historyQuerySchema = z.object({
   provider: z.string().min(1).optional(),
@@ -27,7 +28,7 @@ export class HistoryController {
 
   @Get("health")
   health() {
-    return { status: "ok" };
+    return { status: "ok", version: appVersion() };
   }
 
   /** Derived playback sessions (our "history" view). */

@@ -22,22 +22,24 @@ export default async function ProvidersLayout({ children }: { children: React.Re
 
   return (
     <main id="main" className="shelf">
-      <header className="shelf-head">
-        <h1 className="shelf-title">Providers</h1>
-        <p className="shelf-count">{sources.length} registered</p>
-      </header>
-      <p className="shelf-lede">
-        Turn sync and library data on or off independently. Browser services sign in here; Jellyfin
-        uses a settings form.
-      </p>
-      <div className="provider-list">
-        {sources.map((item) => (
-          <ProviderPanel key={item.id} item={item} />
-        ))}
-      </div>
+      <section className="provider-section">
+        <header className="shelf-head">
+          <h1 className="shelf-title">Providers</h1>
+          <p className="shelf-count">{sources.length} registered</p>
+        </header>
+        <p className="shelf-lede">
+          Turn sync and library data on or off independently. Browser services sign in here; Jellyfin
+          uses a settings form.
+        </p>
+        <div className="provider-list">
+          {sources.map((item) => (
+            <ProviderPanel key={item.id} item={item} />
+          ))}
+        </div>
+      </section>
       {plugins.length > 0 && (
-        <>
-          <header className="shelf-head shelf-head-plugins">
+        <section className="provider-section">
+          <header className="shelf-head">
             <h2 className="shelf-title">Plugins</h2>
             <p className="shelf-count">{plugins.length} registered</p>
           </header>
@@ -51,7 +53,7 @@ export default async function ProvidersLayout({ children }: { children: React.Re
               <ProviderPanel key={item.id} item={item} />
             ))}
           </div>
-        </>
+        </section>
       )}
       {children}
     </main>

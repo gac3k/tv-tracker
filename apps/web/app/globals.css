@@ -128,7 +128,7 @@ a {
   min-width: 0;
   min-height: 3.25rem;
   padding: var(--space-2xs) 2px;
-  border-radius: var(--radius-sm);
+  border-radius: 0;
   color: var(--color-ink-2);
   font-size: var(--text-sm);
   font-weight: 650;
@@ -334,7 +334,8 @@ a {
   gap: var(--space-xs) var(--space-md);
 }
 
-.shelf-head-plugins {
+.shelf-head-plugins,
+.provider-section + .provider-section {
   margin-top: var(--space-2xl);
 }
 
@@ -521,7 +522,7 @@ a {
     gap: var(--space-sm);
     min-height: 2.5rem;
     padding: var(--space-xs) var(--space-sm);
-    border-radius: var(--radius-sm);
+    border-radius: 0;
     font-size: var(--text-base);
     font-weight: 600;
     line-height: 1.25;
@@ -607,6 +608,17 @@ a {
   .rail-user-sub {
     font-size: var(--text-sm);
     color: var(--color-ink-3);
+  }
+
+  .rail-version {
+    display: block;
+    margin: 0;
+    padding: 0 var(--space-xs) var(--space-2xs);
+    font-size: var(--text-xs);
+    font-weight: 650;
+    letter-spacing: 0.04em;
+    color: var(--color-ink-3);
+    font-variant-numeric: tabular-nums;
   }
 
   .provider-row {
@@ -1357,8 +1369,8 @@ a.poster {
 
 .provider-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(9.75rem, 100%), 1fr));
-  gap: var(--space-md);
+  grid-template-columns: repeat(auto-fill, minmax(min(16rem, 100%), 1fr));
+  gap: var(--space-lg);
   margin-top: var(--space-lg);
 }
 
@@ -1368,12 +1380,12 @@ a.poster {
   align-items: center;
   justify-content: space-between;
   text-align: center;
-  gap: var(--space-xs);
+  gap: var(--space-sm);
   width: 100%;
   min-width: 0;
-  aspect-ratio: 1;
+  min-height: 18rem;
   overflow: hidden;
-  padding: var(--space-md) var(--space-sm);
+  padding: var(--space-lg) var(--space-md);
   background: var(--color-paper-2);
   border: 1px solid var(--color-line-soft);
   border-radius: var(--radius-md);
@@ -1382,8 +1394,8 @@ a.poster {
 .provider-mark {
   display: grid;
   place-items: center;
-  width: 2.75rem;
-  height: 2.75rem;
+  width: 4rem;
+  height: 4rem;
   margin-top: var(--space-2xs);
 }
 
@@ -1404,8 +1416,8 @@ a.poster {
 }
 
 .provider-icon-lg {
-  width: 2.25rem;
-  height: 2.25rem;
+  width: 3.5rem;
+  height: 3.5rem;
 }
 
 .chip-icon,
@@ -1417,7 +1429,7 @@ a.poster {
 
 .provider-card-title {
   margin: 0;
-  font-size: var(--text-base);
+  font-size: var(--text-lg);
   font-weight: 650;
   font-style: normal;
   overflow-wrap: anywhere;
@@ -1469,7 +1481,7 @@ a.poster {
 
 .provider-actions {
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: center;
   gap: var(--space-xs);

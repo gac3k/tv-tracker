@@ -53,6 +53,22 @@ export type BrowserNs = {
     request: (details: { origins?: string[] }) => Promise<boolean>;
     contains: (details: { origins?: string[] }) => Promise<boolean>;
   };
+  tabs: {
+    query: (info: { url?: string }) => Promise<Array<{ id?: number; status?: string }>>;
+    create: (info: { url: string; active?: boolean }) => Promise<{ id?: number; status?: string }>;
+    get: (tabId: number) => Promise<{ id?: number; status?: string }>;
+    onUpdated: {
+      addListener: (fn: (tabId: number, info: { status?: string }) => void) => void;
+      removeListener: (fn: (tabId: number, info: { status?: string }) => void) => void;
+    };
+  };
+  scripting: {
+    executeScript: (details: {
+      target: { tabId: number };
+      func: (...args: never[]) => unknown;
+      args?: unknown[];
+    }) => Promise<Array<{ result?: unknown }>>;
+  };
   runtime: {
     sendMessage: (message: Msg) => Promise<MsgResult<unknown>>;
     openOptionsPage: () => Promise<void>;
@@ -81,6 +97,19 @@ export function lanFetchInit(url: string, init: RequestInit = {}): RequestInit {
     return { ...init, targetAddressSpace: space } as RequestInit;
   } catch {
     return init;
+  }
+}
+
+/** Firefox blocks background fetch from moz-extension:// to http://*.lan (LNA/CORS). */
+export function needsPageFetch(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== "http:") return false;
+    const host = parsed.hostname.toLowerCase();
+    if (host === "localhost" || host === "127.0.0.1" || host === "[::1]") return false;
+    return isTrustedApiUrl(url);
+  } catch {
+    return false;
   }
 }
 

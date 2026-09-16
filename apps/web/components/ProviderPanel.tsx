@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ProviderCatalogItem } from "../lib/api";
 import { ProviderIcon } from "./ProviderIcon";
+import { SyncButton } from "./SyncButton";
 
 function statusState(status: string | null): "ok" | "bad" | "unknown" {
   if (status === "success") return "ok";
@@ -37,6 +38,9 @@ export function ProviderPanel({ item }: { item: ProviderCatalogItem }) {
           : (item.lastSyncStatus ?? "never synced")}
       </p>
       <div className="provider-actions">
+        {(item.kind !== "plugin" || item.exportWatched) && (
+          <SyncButton provider={item.id} exportWatched={item.exportWatched} compact />
+        )}
         <Link className="button-ghost" href={`/providers/${item.id}/settings`}>
           Configure
         </Link>

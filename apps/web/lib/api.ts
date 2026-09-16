@@ -177,6 +177,13 @@ async function get<T>(path: string): Promise<T | null> {
 export const api = {
   providers: () => get<{ providers: ProviderCatalogItem[] }>("/providers"),
   extension: () => get<{ token: string }>("/extension"),
+  settings: () =>
+    get<{
+      version: string;
+      tmdbApiKeySet: boolean;
+      tmdbApiKeySource: "env" | "settings" | null;
+    }>("/settings"),
+  health: () => get<{ status: string; version: string }>("/health"),
   status: (provider: string) => get<ProviderStatus>(`/providers/${provider}/status`),
   jobs: () => get<JobsResponse>("/jobs"),
   job: (id: number) => get<JobRunDetail>(`/jobs/${id}`),

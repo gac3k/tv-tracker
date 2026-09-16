@@ -146,9 +146,11 @@ function AppNav() {
 export function AppChrome({
   children,
   nowPlaying,
+  version,
 }: {
   children: React.ReactNode;
   nowPlaying: NowPlaying | null;
+  version: string | null;
 }) {
   const playing = nowPlayingLabel(nowPlaying);
 
@@ -172,6 +174,11 @@ export function AppChrome({
               <span className="rail-user-sub">Local</span>
             </span>
           </div>
+          {version && (
+            <p className="rail-version" title="Deployed app version">
+              {version}
+            </p>
+          )}
         </div>
       </aside>
       <div className="frame">

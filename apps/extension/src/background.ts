@@ -2,6 +2,7 @@ import {
   extApi,
   isTrustedApiUrl,
   lanFetchInit,
+  needsPageFetch,
   normalizeApiUrl,
   type Msg,
   type MsgResult,
@@ -20,6 +21,94 @@ async function loadSettings(): Promise<Settings | null> {
   return { apiUrl, token };
 }
 
+type PageFetchResult = { status: number; body: string };
+
+function headerRecord(headers?: HeadersInit): Record<string, string> {
+  const out: Record<string, string> = {};
+  new Headers(headers).forEach((value, key) => {
+    out[key] = value;
+  });
+  return out;
+}
+
+function waitTabComplete(tabId: number): Promise<void> {
+  return new Promise((resolve, reject) => {
+    let settled = false;
+    const timer = setTimeout(() => {
+      ext.tabs.onUpdated.removeListener(onUpdated);
+      if (!settled) {
+        settled = true;
+        reject(new Error("Timed out opening the tracker dashboard"));
+      }
+    }, 15000);
+    function finish() {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      ext.tabs.onUpdated.removeListener(onUpdated);
+      resolve();
+    }
+    function onUpdated(id: number, info: { status?: string }) {
+      if (id === tabId && info.status === "complete") finish();
+    }
+    ext.tabs.onUpdated.addListener(onUpdated);
+    void ext.tabs.get(tabId).then((tab) => {
+      if (tab.status === "complete") finish();
+    }).catch(() => {});
+  });
+}
+
+async function trackerTabId(origin: string): Promise<number> {
+  const existing = (await ext.tabs.query({ url: `${origin}/*` })).find((tab) => tab.id != null);
+  if (existing?.id != null) {
+    if (existing.status !== "complete") await waitTabComplete(existing.id);
+    return existing.id;
+  }
+  const tab = await ext.tabs.create({ url: origin, active: false });
+  if (tab.id == null) throw new Error("Could not open tracker dashboard");
+  await waitTabComplete(tab.id);
+  return tab.id;
+}
+
+function pageFetch(
+  href: string,
+  httpMethod: string,
+  httpHeaders: Record<string, string>,
+  httpBody: string | null
+): Promise<PageFetchResult> {
+  return fetch(href, { method: httpMethod, headers: httpHeaders, body: httpBody ?? undefined }).then(
+    (res) => res.text().then((body) => ({ status: res.status, body }))
+  );
+}
+
+async function fetchViaPage(url: string, init: RequestInit = {}): Promise<PageFetchResult> {
+  const tabId = await trackerTabId(new URL(url).origin);
+  const method = init.method ?? "GET";
+  const headers = headerRecord(init.headers);
+  const body = typeof init.body === "string" ? init.body : null;
+  const results = await ext.scripting.executeScript({
+    target: { tabId },
+    func: pageFetch as never,
+    args: [url, method, headers, body],
+  });
+  const result = results[0]?.result as PageFetchResult | undefined;
+  if (!result) throw new Error("Tracker page did not return a response");
+  return result;
+}
+
+async function trackerFetch(url: string, init: RequestInit = {}): Promise<PageFetchResult> {
+  if (needsPageFetch(url)) return fetchViaPage(url, init);
+  const res = await fetch(url, lanFetchInit(url, init));
+  return { status: res.status, body: await res.text() };
+}
+
+function jsonResponse(result: PageFetchResult): Response {
+  return new Response(result.body, {
+    status: result.status,
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
 async function apiFetch(path: string, init: RequestInit = {}): Promise<Response> {
   const settings = await loadSettings();
   if (!settings) throw new Error("Set the API URL and token in the extension options");
@@ -29,9 +118,9 @@ async function apiFetch(path: string, init: RequestInit = {}): Promise<Response>
     headers.set("Content-Type", "application/json");
   }
   const url = `${settings.apiUrl}${path}`;
-  const res = await fetch(url, lanFetchInit(url, { ...init, headers }));
-  if (res.status === 401) throw new Error("Extension token rejected");
-  return res;
+  const result = await trackerFetch(url, { ...init, headers });
+  if (result.status === 401) throw new Error("Extension token rejected");
+  return jsonResponse(result);
 }
 
 async function cookiesFor(domain: string): Promise<WebExtCookie[]> {
@@ -75,9 +164,11 @@ async function collectCookies(domains: string[]): Promise<WebExtCookie[]> {
 }
 
 async function probeHealth(url: string): Promise<void> {
-  const res = await fetch(url, lanFetchInit(url));
-  if (!res.ok) throw new Error(`${url} → HTTP ${res.status}`);
-  const body = (await res.json()) as { status?: string };
+  const result = await trackerFetch(url);
+  if (result.status < 200 || result.status >= 300) {
+    throw new Error(`${url} → HTTP ${result.status}`);
+  }
+  const body = JSON.parse(result.body) as { status?: string };
   if (body.status !== "ok") throw new Error(`${url} is not vod-tracker`);
 }
 

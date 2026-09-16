@@ -18,6 +18,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const themeCookie = (await cookies()).get("vod-theme")?.value;
   const theme = themeCookie === "light" || themeCookie === "dark" ? themeCookie : undefined;
   const nowPlaying = await api.nowPlaying();
+  const health = await api.health();
 
   return (
     <html lang="en" data-theme={theme} suppressHydrationWarning>
@@ -33,7 +34,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           FORM: Catalogue + N3 side-rail. Extension of the incumbent dark shelf; no concept-seed.
           FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md
         */}
-        <AppChrome nowPlaying={nowPlaying}>
+        <AppChrome nowPlaying={nowPlaying} version={health?.version ?? null}>
           {children}
         </AppChrome>
       </body>

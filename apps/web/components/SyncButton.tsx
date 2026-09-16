@@ -40,7 +40,7 @@ export function SyncButton({
     return (
       <button
         type="button"
-        className="reset"
+        className="button-ghost"
         onClick={sync}
         disabled={busy}
         title={exportSink ? `Export ${provider}` : `Sync ${provider}`}

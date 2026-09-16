@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "vod-tracker",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Import streaming login sessions into a self-hosted vod-tracker.",
   "browser_specific_settings": {
     "gecko": {
@@ -9,7 +9,7 @@
       "strict_min_version": "115.0"
     }
   },
-  "permissions": ["cookies", "storage"],
+  "permissions": ["cookies", "storage", "scripting"],
   "host_permissions": [
     "http://127.0.0.1/*",
     "http://localhost/*",

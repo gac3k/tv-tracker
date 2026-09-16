@@ -136,6 +136,12 @@ export class ProvidersController {
       const cookies = parseImportedCookies(body, domains);
       writeImportedCookies(name, cookies);
       logger.info({ provider: name, imported: cookies.length }, "stored imported browser session");
+      void this.queue.enqueue({ trigger: "manual", provider: name }).catch((err) => {
+        logger.warn(
+          { err: err instanceof Error ? err.message : String(err), provider: name },
+          "session imported but sync did not queue"
+        );
+      });
       return { provider: name, saved: cookies.length };
     } catch (err) {
       const message = err instanceof Error ? err.message : "Invalid session payload";

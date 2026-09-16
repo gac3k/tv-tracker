@@ -1,10 +1,12 @@
 import { ExtensionToken } from "../../components/ExtensionToken";
+import { TmdbSettings } from "../../components/TmdbSettings";
 import { api } from "../../lib/api";
 
 export const dynamic = "force-dynamic";
 
 export default async function SettingsPage() {
   const extension = await api.extension();
+  const settings = await api.settings();
 
   return (
     <main id="main" className="shelf">
@@ -17,6 +19,17 @@ export default async function SettingsPage() {
         popup.
       </p>
       <ExtensionToken token={extension?.token ?? null} />
+      <header className="shelf-head shelf-head-plugins">
+        <h2 className="shelf-title">TMDB</h2>
+      </header>
+      <p className="shelf-lede">
+        Optional. Posters, catalog search, and upcoming episodes need a free key from
+        themoviedb.org.
+      </p>
+      <TmdbSettings
+        set={settings?.tmdbApiKeySet ?? false}
+        source={settings?.tmdbApiKeySource ?? null}
+      />
     </main>
   );
 }

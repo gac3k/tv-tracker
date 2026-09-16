@@ -2,9 +2,10 @@
  * Minimal TMDB client. Only the three calls the library view needs:
  * search a show/movie, fetch movie runtime, fetch episode still + runtime.
  *
- * TMDB is optional: without TMDB_API_KEY every lookup returns null and the UI
- * falls back to generated placeholder tiles.
+ * TMDB is optional: without TMDB_API_KEY (env or Settings) every lookup returns
+ * null and the UI falls back to generated placeholder tiles.
  */
+import { tmdbApiKey } from "./tmdb-key";
 import { config } from "../config";
 
 const API = "https://api.themoviedb.org/3";
@@ -29,13 +30,14 @@ export interface TmdbEpisodeDetails {
 }
 
 export function isTmdbEnabled(): boolean {
-  return Boolean(config.TMDB_API_KEY);
+  return Boolean(tmdbApiKey());
 }
 
 async function get<T>(path: string, params: Record<string, string>): Promise<T | null> {
-  if (!config.TMDB_API_KEY) return null;
+  const apiKey = tmdbApiKey();
+  if (!apiKey) return null;
   const url = new URL(`${API}${path}`);
-  url.searchParams.set("api_key", config.TMDB_API_KEY);
+  url.searchParams.set("api_key", apiKey);
   url.searchParams.set("language", config.TMDB_LANGUAGE);
   for (const [key, value] of Object.entries(params)) {
     url.searchParams.set(key, value);
