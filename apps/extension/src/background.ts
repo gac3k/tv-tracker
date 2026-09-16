@@ -1,6 +1,7 @@
 import {
   extApi,
   isTrustedApiUrl,
+  lanFetchInit,
   normalizeApiUrl,
   type Msg,
   type MsgResult,
@@ -27,7 +28,8 @@ async function apiFetch(path: string, init: RequestInit = {}): Promise<Response>
   if (init.body && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
   }
-  const res = await fetch(`${settings.apiUrl}${path}`, { ...init, headers });
+  const url = `${settings.apiUrl}${path}`;
+  const res = await fetch(url, lanFetchInit(url, { ...init, headers }));
   if (res.status === 401) throw new Error("Extension token rejected");
   return res;
 }
@@ -72,22 +74,29 @@ async function collectCookies(domains: string[]): Promise<WebExtCookie[]> {
   return [...byKey.values()];
 }
 
-async function isTrackerHealth(url: string): Promise<boolean> {
-  try {
-    const res = await fetch(url);
-    if (!res.ok) return false;
-    const body = (await res.json()) as { status?: string };
-    return body.status === "ok";
-  } catch {
-    return false;
-  }
+async function probeHealth(url: string): Promise<void> {
+  const res = await fetch(url, lanFetchInit(url));
+  if (!res.ok) throw new Error(`${url} → HTTP ${res.status}`);
+  const body = (await res.json()) as { status?: string };
+  if (body.status !== "ok") throw new Error(`${url} is not vod-tracker`);
 }
 
 /** Direct API at /health, or the Next dashboard proxy at /api/health. */
 async function resolveApiBase(origin: string): Promise<string> {
-  if (await isTrackerHealth(`${origin}/health`)) return origin;
-  if (await isTrackerHealth(`${origin}/api/health`)) return `${origin}/api`;
-  throw new Error("Could not reach vod-tracker (tried /health and /api/health)");
+  const attempts: Array<[string, string]> = [
+    [`${origin}/health`, origin],
+    [`${origin}/api/health`, `${origin}/api`],
+  ];
+  const errors: string[] = [];
+  for (const [url, base] of attempts) {
+    try {
+      await probeHealth(url);
+      return base;
+    } catch (err) {
+      errors.push(err instanceof Error ? err.message : String(err));
+    }
+  }
+  throw new Error(`Could not reach vod-tracker (${errors.join("; ")})`);
 }
 
 async function saveSettings(settings: Settings): Promise<Settings> {

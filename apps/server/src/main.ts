@@ -20,6 +20,17 @@ async function bootstrap(): Promise<void> {
     new FastifyAdapter({ loggerInstance: logger as never }),
     { logger: false } // Fastify/pino handles request logging; skip Nest's own logger
   );
+  // Extension fetches from moz-extension://; Firefox still applies CORS even with host permission.
+  app.enableCors({
+    origin: true,
+    allowedHeaders: ["Authorization", "Content-Type", "Accept"],
+  });
+  app.getHttpAdapter().getInstance().addHook("onRequest", (req, reply, done) => {
+    if (req.headers["access-control-request-private-network"] === "true") {
+      void reply.header("Access-Control-Allow-Private-Network", "true");
+    }
+    done();
+  });
   app.enableShutdownHooks();
 
   // Queue + scheduler start only in the HTTP entrypoint, never in the CLI context.

@@ -66,7 +66,22 @@ export type BrowserNs = {
 
 export function originPattern(apiUrl: string): string {
   const url = new URL(apiUrl);
-  return `${url.protocol}//${url.host}/*`;
+  // Firefox match patterns with a port are silently ignored (bug 1362809).
+  return `${url.protocol}//${url.hostname}/*`;
+}
+
+/** Firefox treats moz-extension:// → http://*.lan as mixed/local-network content. */
+export function lanFetchInit(url: string, init: RequestInit = {}): RequestInit {
+  try {
+    const { protocol, hostname } = new URL(url);
+    if (protocol !== "http:") return init;
+    const loopback = hostname === "localhost" || hostname === "127.0.0.1" || hostname === "[::1]";
+    const space = loopback ? "loopback" : isTrustedApiUrl(url) ? "local" : undefined;
+    if (!space) return init;
+    return { ...init, targetAddressSpace: space } as RequestInit;
+  } catch {
+    return init;
+  }
 }
 
 export function isTrustedApiUrl(apiUrl: string): boolean {
