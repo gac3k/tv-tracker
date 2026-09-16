@@ -439,6 +439,10 @@ a {
   scroll-snap-type: x mandatory;
 }
 
+.poster-row:has(.card-menu[open]) {
+  overflow: visible;
+}
+
 .poster-row .card {
   flex: 0 0 9.75rem;
   min-width: 0;
@@ -1045,8 +1049,10 @@ a.poster {
   user-select: none;
 }
 
+.card-menu > summary::marker,
 .card-menu > summary::-webkit-details-marker {
   display: none;
+  content: none;
 }
 
 .card-menu-panel {

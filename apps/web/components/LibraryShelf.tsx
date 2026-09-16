@@ -85,7 +85,7 @@ export function LibraryShelf({
               selecting={row ? false : selecting}
               selected={selected.has(item.key)}
               onToggleSelect={row ? undefined : () => toggle(item.key)}
-              onAction={row ? undefined : (action, key) => void run(action, [key])}
+              onAction={(action, key) => void run(action, [key])}
             />
           ))}
         </div>
