@@ -28,9 +28,25 @@ const envSchema = z.object({
   TMDB_LANGUAGE: z.string().default("en-US"),
   BETTER_AUTH_SECRET: z.string().min(32).default("tv-tracker-dev-secret-change-me-32b"),
   AUTH_BASE_URL: z.string().default("http://127.0.0.1:3001"),
+  /** Extra CSRF origins, comma-separated. Appended to the built-in defaults. */
+  AUTH_TRUSTED_ORIGINS: z.string().optional(),
 });
 
 const env = envSchema.parse(process.env);
+
+export function parseTrustedOrigins(baseUrl: string, extra = ""): string[] {
+  return [
+    ...new Set([
+      baseUrl,
+      "http://127.0.0.1:3001",
+      "http://localhost:3001",
+      // prefix-less: any protocol. login Origin is the web host, not the API.
+      "*.lan",
+      "*.homelab.lan",
+      ...extra.split(",").map((origin) => origin.trim()).filter(Boolean),
+    ]),
+  ];
+}
 
 export const config = {
   ...env,
@@ -40,11 +56,7 @@ export const config = {
   dbPath: path.resolve(env.DATA_DIR, "vod-tracker.sqlite"),
   browserProfileDir: (provider: string) => path.resolve(env.DATA_DIR, "browser", provider),
   fixturesDir: (provider: string) => path.resolve(env.DATA_DIR, "fixtures", provider),
-  AUTH_TRUSTED_ORIGINS: [
-    env.AUTH_BASE_URL,
-    "http://127.0.0.1:3001",
-    "http://localhost:3001",
-  ],
+  AUTH_TRUSTED_ORIGINS: parseTrustedOrigins(env.AUTH_BASE_URL, env.AUTH_TRUSTED_ORIGINS),
 };
 
 export type Config = typeof config;

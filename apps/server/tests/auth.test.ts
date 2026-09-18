@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { ensureAdmin, initAuth, isPublicAuthPath, runAsUser } from "../src/auth";
+import { parseTrustedOrigins } from "../src/config";
 import { openDb } from "../src/db/client";
 import { ObservationsService } from "../src/observations/observations.service";
 import type { PlaybackObservation } from "../src/providers/provider";
@@ -18,6 +19,20 @@ function observation(): PlaybackObservation {
 }
 
 describe("auth ownership", () => {
+  it("appends extra trusted origins from env", () => {
+    expect(parseTrustedOrigins("http://127.0.0.1:3001")).toEqual(
+      expect.arrayContaining(["*.lan", "*.homelab.lan", "http://127.0.0.1:3001"]),
+    );
+    expect(
+      parseTrustedOrigins(
+        "http://tv-tracker.lan",
+        "http://tv-tracker.lan, http://tv-tracker.homelab.lan",
+      ),
+    ).toEqual(
+      expect.arrayContaining(["http://tv-tracker.lan", "http://tv-tracker.homelab.lan"]),
+    );
+  });
+
   it("keeps MCP routes public", () => {
     expect(isPublicAuthPath("/mcp")).toBe(true);
     expect(isPublicAuthPath("/mcp/sse")).toBe(true);
