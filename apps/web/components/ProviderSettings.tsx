@@ -161,14 +161,6 @@ export function ProviderSettings({ item }: { item: ProviderCatalogItem }) {
         </form>
       )}
 
-      {item.id === "mcp" && (
-        <p className="hint">
-          In Home Assistant: Settings → Devices & services → Add integration → Model Context Protocol.
-          SSE URL is <code>/mcp/sse</code> on this API host (port 3000). Enable that MCP API on the
-          conversation agent next to Assist. Test with <code>/mcp/resolve?q=1670</code>.
-        </p>
-      )}
-
       <div className="provider-actions">
         {item.exportWatched && <SyncButton provider={item.id} exportWatched />}
         {message && <span className="card-sub">{message}</span>}

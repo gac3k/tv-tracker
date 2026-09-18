@@ -11,6 +11,7 @@ import { attachRemoteLoginGateway } from "./remote-login/remote-login.gateway";
 import { RemoteLoginService } from "./remote-login/remote-login.service";
 import { SyncQueue } from "./jobs/sync.queue";
 import { LibraryService } from "./library/library.service";
+import { mountMcp } from "./mcp/http";
 import { PluginRegistry } from "./plugins/registry.service";
 
 async function bootstrap(): Promise<void> {
@@ -35,7 +36,8 @@ async function bootstrap(): Promise<void> {
 
   // Queue + scheduler start only in the HTTP entrypoint, never in the CLI context.
   await app.get(SyncQueue).start();
-  app.get(PluginRegistry).mount(app.getHttpAdapter().getInstance(), app.get(LibraryService));
+  app.get(PluginRegistry).mount(app.getHttpAdapter().getInstance());
+  mountMcp(app.getHttpAdapter().getInstance(), app.get(LibraryService));
 
   // Binding beyond 127.0.0.1 must be an explicit decision (HOST=0.0.0.0).
   await app.listen(config.PORT, config.HOST);

@@ -1,5 +1,7 @@
 import { ExtensionToken } from "../../components/ExtensionToken";
+import { McpSettings } from "../../components/McpSettings";
 import { TmdbSettings } from "../../components/TmdbSettings";
+import { TvOsSettings } from "../../components/TvOsSettings";
 import { api } from "../../lib/api";
 
 export const dynamic = "force-dynamic";
@@ -19,6 +21,21 @@ export default async function SettingsPage() {
         popup.
       </p>
       <ExtensionToken token={extension?.token ?? null} />
+      <header className="shelf-head shelf-head-plugins">
+        <h2 className="shelf-title">TV</h2>
+      </header>
+      <p className="shelf-lede">
+        Which living-room OS Assist should build launcher deeplinks for.
+      </p>
+      <TvOsSettings tvOs={settings?.tvOs ?? "webos"} />
+      <header className="shelf-head shelf-head-plugins">
+        <h2 className="shelf-title">MCP</h2>
+      </header>
+      <p className="shelf-lede">
+        Optional. Expose an MCP server so a conversation agent can resolve a title to a TV
+        deeplink and launch it.
+      </p>
+      <McpSettings enabled={settings?.mcpEnabled ?? false} />
       <header className="shelf-head shelf-head-plugins">
         <h2 className="shelf-title">TMDB</h2>
       </header>

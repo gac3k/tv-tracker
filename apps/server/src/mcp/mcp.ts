@@ -1,17 +1,23 @@
-import type { PlaybackLaunch } from "../../library/playback";
+import type { PlaybackLaunch } from "../library/playback";
+import type { TvOs } from "../settings/app-settings";
 
-export const RESOLVE_TOOL = {
-  name: "resolve_playback",
-  description:
-    'Resolve a movie or TV show from the local vod-tracker library into an LG webOS launch payload. Pass only the title (e.g. "1670"), not the whole sentence. After this tool returns, turn the TV on if needed, then call Home Assistant webostv.command with command "system.launcher/launch" and payload { "id": webos.appId, "contentId": webos.contentId }. Do not invent ids; if nothing matches, say so.',
-  inputSchema: {
-    type: "object",
-    properties: {
-      query: { type: "string", description: "Show or movie title to play" },
+export function resolveTool(os: TvOs) {
+  const description =
+    os === "android"
+      ? 'Resolve a movie or TV show from the local vod-tracker library into an Android TV deeplink. Pass only the title (e.g. "1670"), not the whole sentence. After this tool returns, turn the TV on if needed, then open the deeplink with the Android system launcher (Home Assistant: remote.turn_on with activity set to the returned deeplink, or androidtv.adb_command `am start -a android.intent.action.VIEW -d <deeplink>`). Do not invent ids; if nothing matches, say so.'
+      : 'Resolve a movie or TV show from the local vod-tracker library into an LG webOS launch payload. Pass only the title (e.g. "1670"), not the whole sentence. After this tool returns, turn the TV on if needed, then call Home Assistant webostv.command with command "system.launcher/launch" and payload { "id", "contentId" }. Do not invent ids; if nothing matches, say so.';
+  return {
+    name: "resolve_playback",
+    description,
+    inputSchema: {
+      type: "object",
+      properties: {
+        query: { type: "string", description: "Show or movie title to play" },
+      },
+      required: ["query"],
     },
-    required: ["query"],
-  },
-};
+  };
+}
 
 export interface JsonRpcRequest {
   jsonrpc?: string;
@@ -29,8 +35,20 @@ export interface JsonRpcResponse {
 
 export type ResolveFn = (query: string) => PlaybackLaunch | null;
 
+/** OS-specific payload the TV system launcher can open. */
+export function launcherDeeplink(launch: PlaybackLaunch, os: TvOs): unknown | null {
+  if (os === "android") {
+    return launch.android ? { deeplink: launch.android.deeplink } : null;
+  }
+  return launch.webos ? { id: launch.webos.appId, contentId: launch.webos.contentId } : null;
+}
+
 /** Handle one MCP JSON-RPC message. Notifications return null. */
-export function handleMcpRequest(msg: JsonRpcRequest, resolve: ResolveFn): JsonRpcResponse | null {
+export function handleMcpRequest(
+  msg: JsonRpcRequest,
+  resolve: ResolveFn,
+  os: TvOs = "webos"
+): JsonRpcResponse | null {
   const id = msg.id ?? null;
   const isNotification = msg.id === undefined;
   const method = msg.method ?? "";
@@ -52,7 +70,7 @@ export function handleMcpRequest(msg: JsonRpcRequest, resolve: ResolveFn): JsonR
     case "ping":
       return isNotification ? null : { jsonrpc: "2.0", id, result: {} };
     case "tools/list":
-      return { jsonrpc: "2.0", id, result: { tools: [RESOLVE_TOOL] } };
+      return { jsonrpc: "2.0", id, result: { tools: [resolveTool(os)] } };
     case "tools/call": {
       const name = String(msg.params?.name ?? "resolve_playback");
       if (name !== "resolve_playback") {
@@ -70,7 +88,8 @@ export function handleMcpRequest(msg: JsonRpcRequest, resolve: ResolveFn): JsonR
         };
       }
       const launch = resolve(query);
-      if (!launch) {
+      const payload = launch ? launcherDeeplink(launch, os) : null;
+      if (!payload) {
         return {
           jsonrpc: "2.0",
           id,
@@ -83,7 +102,7 @@ export function handleMcpRequest(msg: JsonRpcRequest, resolve: ResolveFn): JsonR
       return {
         jsonrpc: "2.0",
         id,
-        result: { content: [{ type: "text", text: JSON.stringify(launch) }] },
+        result: { content: [{ type: "text", text: JSON.stringify(payload) }] },
       };
     }
     default:

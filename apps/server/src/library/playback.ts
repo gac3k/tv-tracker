@@ -1,5 +1,5 @@
 import { groupByTitle, isInProgress, type LibraryItem } from "./aggregate";
-import { providerUrl, webosLaunch, type WebosLaunch } from "./deepLink";
+import { androidLaunch, providerUrl, webosLaunch, type AndroidLaunch, type WebosLaunch } from "./deepLink";
 
 export interface PlaybackLaunch {
   query: string;
@@ -14,6 +14,7 @@ export interface PlaybackLaunch {
   completed: boolean;
   url: string | null;
   webos: WebosLaunch | null;
+  android: AndroidLaunch | null;
 }
 
 /** Score a library title against a free-text query from Assist. */
@@ -66,5 +67,6 @@ export function toPlaybackLaunch(
     completed: item.completed,
     url,
     webos: webosLaunch(item.provider, item.providerContentId, item.mediaType, extras),
+    android: androidLaunch(item.provider, item.providerContentId, item.mediaType, extras),
   };
 }

@@ -12,7 +12,6 @@ export const PROVIDER_LABELS: Record<string, string> = {
   disney: "Disney+",
   jellyfin: "Jellyfin",
   justwatch: "JustWatch",
-  mcp: "MCP",
 };
 
 export interface ProviderField {
@@ -182,6 +181,8 @@ export const api = {
       version: string;
       tmdbApiKeySet: boolean;
       tmdbApiKeySource: "env" | "settings" | null;
+      mcpEnabled: boolean;
+      tvOs: "webos" | "android";
     }>("/settings"),
   health: () => get<{ status: string; version: string }>("/health"),
   status: (provider: string) => get<ProviderStatus>(`/providers/${provider}/status`),

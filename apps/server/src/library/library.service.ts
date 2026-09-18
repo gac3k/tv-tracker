@@ -384,7 +384,7 @@ export class LibraryService {
     });
   }
 
-  /** Title → webOS launch payload for Assist / MCP. */
+  /** Title → playback match for Assist / MCP. */
   resolvePlayback(query: string): PlaybackLaunch | null {
     const hidden = this.registry.hiddenProviders();
     const observations = this.db

@@ -2,7 +2,6 @@ import { Inject, Injectable } from "@nestjs/common";
 import type { FastifyInstance } from "fastify";
 import type { Db } from "../db/client";
 import { DB } from "../db/db.provider";
-import type { LibraryService } from "../library/library.service";
 import { ObservationsService } from "../observations/observations.service";
 import { loadSettings, mergeProviderValues, saveSettings } from "../providers/registry.service";
 import type { ProviderSettings } from "../providers/provider";
@@ -73,11 +72,10 @@ export class PluginRegistry {
   }
 
   /** Register plugin HTTP routes. Call from the HTTP entrypoint, not the CLI. */
-  mount(app: FastifyInstance, library: LibraryService): void {
+  mount(app: FastifyInstance): void {
     for (const entry of this.discovered) {
       entry.instance.mount?.(app, {
         enabled: () => this.readSettings(entry.meta.id).enabled,
-        library,
       });
     }
   }

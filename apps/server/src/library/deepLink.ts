@@ -89,3 +89,43 @@ export function webosLaunch(
   const url = providerUrl(provider, id, mediaType, extras);
   return url ? { appId, contentId: url } : null;
 }
+
+/** Android TV packages used by the system launcher / Android TV Remote. */
+const ANDROID_PACKAGE: Record<string, string> = {
+  netflix: "com.netflix.ninja",
+  prime: "com.amazon.amazonvideo.livingroom",
+  max: "com.wbd.stream",
+  apple: "com.apple.atve.androidtv.appletv",
+  disney: "com.disney.disneyplus",
+  jellyfin: "org.jellyfin.androidtv",
+};
+
+export interface AndroidLaunch {
+  /** URI for `remote.turn_on` activity / `ACTION_VIEW`. */
+  deeplink: string;
+}
+
+/**
+ * Content URI (or app id) the Android TV launcher can open.
+ * Jellyfin Android TV has no content deep link — package only.
+ */
+export function androidLaunch(
+  provider: string,
+  providerContentId: string,
+  mediaType: string,
+  extras?: { jellyfinServerUrl?: string }
+): AndroidLaunch | null {
+  const pkg = ANDROID_PACKAGE[provider];
+  if (!pkg) return null;
+  const id = providerContentId?.trim();
+  if (!id) return null;
+
+  if (provider === "prime") {
+    return { deeplink: `https://app.primevideo.com/detail?gti=${encodeURIComponent(id)}` };
+  }
+  if (provider === "jellyfin") {
+    return { deeplink: pkg };
+  }
+  const url = providerUrl(provider, id, mediaType, extras);
+  return url ? { deeplink: url } : null;
+}

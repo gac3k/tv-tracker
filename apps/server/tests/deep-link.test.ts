@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { providerUrl, webosLaunch } from "../src/library/deepLink";
+import { androidLaunch, providerUrl, webosLaunch } from "../src/library/deepLink";
 
 describe("provider deep links", () => {
   it("builds a Netflix watch URL from the numeric video id", () => {
@@ -78,6 +78,38 @@ describe("provider deep links", () => {
     expect(webosLaunch("jellyfin", "abc-123", "movie")).toEqual({
       appId: "org.jellyfin.webos",
       contentId: "id=abc-123",
+    });
+  });
+});
+
+describe("android TV deep links", () => {
+  it("uses the Netflix watch URL as the launcher deeplink", () => {
+    expect(androidLaunch("netflix", "70143634", "episode")).toEqual({
+      deeplink: "https://www.netflix.com/watch/70143634",
+    });
+  });
+
+  it("uses the Prime app.primevideo.com gti URL", () => {
+    expect(androidLaunch("prime", "amzn1.dv.gti.0a4e40bd", "movie")).toEqual({
+      deeplink: "https://app.primevideo.com/detail?gti=amzn1.dv.gti.0a4e40bd",
+    });
+  });
+
+  it("reuses the Disney/Apple/Max https URLs", () => {
+    expect(androidLaunch("disney", "04052bf2-70e0", "movie")?.deeplink).toBe(
+      "https://www.disneyplus.com/play/04052bf2-70e0"
+    );
+    expect(androidLaunch("apple", "umc.cmc.40za8", "episode")?.deeplink).toBe(
+      "https://tv.apple.com/episode/umc.cmc.40za8"
+    );
+    expect(androidLaunch("max", "5033e602-73e5-4204-b6ec-5283c6d522ca", "episode")?.deeplink).toContain(
+      "play.hbomax.com"
+    );
+  });
+
+  it("returns the Jellyfin Android TV package because that app has no content URI", () => {
+    expect(androidLaunch("jellyfin", "abc-123", "movie")).toEqual({
+      deeplink: "org.jellyfin.androidtv",
     });
   });
 });

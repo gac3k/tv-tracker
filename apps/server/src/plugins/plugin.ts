@@ -1,6 +1,5 @@
 import type { FastifyInstance } from "fastify";
 import type { Db } from "../db/client";
-import type { LibraryService } from "../library/library.service";
 import { ProviderAuthenticationError } from "../providers/errors";
 import type { ProviderField } from "../providers/decorate";
 import type { MediaType, ProviderSettings, ProviderStatus } from "../providers/provider";
@@ -49,7 +48,6 @@ export interface PluginContext {
 
 export interface PluginHttpContext {
   enabled: () => boolean;
-  library: LibraryService;
 }
 
 export interface Plugin {

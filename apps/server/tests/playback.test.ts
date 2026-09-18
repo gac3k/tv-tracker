@@ -63,5 +63,6 @@ describe("toPlaybackLaunch", () => {
       appId: "netflix",
       contentId: "m=https://www.netflix.com/watch/80189685",
     });
+    expect(launch.android).toEqual({ deeplink: "https://www.netflix.com/watch/80189685" });
   });
 });

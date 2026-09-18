@@ -44,9 +44,7 @@ export default async function ProvidersLayout({ children }: { children: React.Re
             <p className="shelf-count">{plugins.length} registered</p>
           </header>
           <p className="shelf-lede">
-            JustWatch marks watched titles after a sync or when you mark an episode watched. MCP
-            exposes a tool so Assist can resolve a title to a webOS app id and content link, then
-            launch it on the TV.
+            JustWatch marks watched titles after a sync or when you mark an episode watched.
           </p>
           <div className="provider-list">
             {plugins.map((item) => (

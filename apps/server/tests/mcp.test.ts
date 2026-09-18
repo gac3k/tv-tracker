@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { handleMcpRequest } from "../src/plugins/mcp/mcp";
+import { handleMcpRequest } from "../src/mcp/mcp";
 import type { PlaybackLaunch } from "../src/library/playback";
 
 const launch: PlaybackLaunch = {
@@ -15,6 +15,7 @@ const launch: PlaybackLaunch = {
   completed: false,
   url: "https://www.netflix.com/watch/80189685",
   webos: { appId: "netflix", contentId: "m=https://www.netflix.com/watch/80189685" },
+  android: { deeplink: "https://www.netflix.com/watch/80189685" },
 };
 
 describe("MCP JSON-RPC", () => {
@@ -27,7 +28,7 @@ describe("MCP JSON-RPC", () => {
     });
   });
 
-  it("returns the webOS payload from resolve_playback", () => {
+  it("returns the webOS launcher payload from resolve_playback", () => {
     const res = handleMcpRequest(
       {
         jsonrpc: "2.0",
@@ -38,7 +39,27 @@ describe("MCP JSON-RPC", () => {
       () => launch
     );
     const text = (res?.result as { content: Array<{ text: string }> }).content[0]?.text;
-    expect(JSON.parse(text ?? "{}").webos.appId).toBe("netflix");
+    expect(JSON.parse(text ?? "{}")).toEqual({
+      id: "netflix",
+      contentId: "m=https://www.netflix.com/watch/80189685",
+    });
+  });
+
+  it("returns an Android deeplink when the TV OS is android", () => {
+    const res = handleMcpRequest(
+      {
+        jsonrpc: "2.0",
+        id: 3,
+        method: "tools/call",
+        params: { name: "resolve_playback", arguments: { query: "1670" } },
+      },
+      () => launch,
+      "android"
+    );
+    const text = (res?.result as { content: Array<{ text: string }> }).content[0]?.text;
+    expect(JSON.parse(text ?? "{}")).toEqual({
+      deeplink: "https://www.netflix.com/watch/80189685",
+    });
   });
 
   it("ignores initialized notifications", () => {

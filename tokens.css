@@ -25,7 +25,6 @@
   --color-disney: oklch(64% 0.16 258);
   --color-jellyfin: oklch(68% 0.14 230);
   --color-justwatch: oklch(82% 0.18 95);
-  --color-mcp: oklch(62% 0.14 250);
 
   --font-display: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-body: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -87,7 +86,6 @@
   --color-disney: oklch(48% 0.16 258);
   --color-jellyfin: oklch(50% 0.14 230);
   --color-justwatch: oklch(62% 0.16 95);
-  --color-mcp: oklch(48% 0.14 250);
 
   --bloom-a: oklch(78% 0.06 28 / 0.22);
   --bloom-b: oklch(86% 0.03 265 / 0.28);
