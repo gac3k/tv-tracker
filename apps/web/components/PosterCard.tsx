@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, type MouseEvent } from "react";
+import { useEffect, useId, useRef, type MouseEvent } from "react";
 import type { LibraryCard } from "../lib/api";
 import { PROVIDER_LABELS } from "../lib/api";
 import { ProviderIcon } from "./ProviderIcon";
@@ -51,17 +51,30 @@ export function PosterCard({
   const fullTitle = secondary ? `${heading} — ${secondary}` : heading;
   const episodeCount =
     item.episodeCount != null && item.episodeCount > 1 ? `${item.episodeCount} episodes` : null;
-  const menuRef = useRef<HTMLDetailsElement>(null);
+  const menuId = useId();
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  function placeMenu() {
+    const btn = btnRef.current;
+    const panel = panelRef.current;
+    if (!btn || !panel) return;
+    const rect = btn.getBoundingClientRect();
+    panel.style.top = `${rect.bottom + 4}px`;
+    panel.style.right = `${document.documentElement.clientWidth - rect.right}px`;
+    panel.style.left = "auto";
+  }
+
+  function closeMenu() {
+    panelRef.current?.hidePopover();
+  }
 
   useEffect(() => {
-    function close(event: PointerEvent) {
-      const menu = menuRef.current;
-      if (!menu?.open) return;
-      if (event.target instanceof Node && menu.contains(event.target)) return;
-      menu.open = false;
-    }
-    document.addEventListener("pointerdown", close);
-    return () => document.removeEventListener("pointerdown", close);
+    const row = btnRef.current?.closest(".poster-row");
+    if (!row) return;
+    const onScroll = () => closeMenu();
+    row.addEventListener("scroll", onScroll, { passive: true });
+    return () => row.removeEventListener("scroll", onScroll);
   }, []);
 
   const artwork = poster ? (
@@ -148,15 +161,33 @@ export function PosterCard({
             />
           </label>
         ) : onAction ? (
-          <details ref={menuRef} className="card-menu">
-            <summary aria-label={`Actions for “${fullTitle}”`}>⋯</summary>
-            <div className="card-menu-panel" role="menu">
+          <div className="card-menu">
+            <button
+              ref={btnRef}
+              type="button"
+              className="card-menu-btn"
+              popoverTarget={menuId}
+              aria-haspopup="menu"
+              aria-label={`Actions for “${fullTitle}”`}
+            >
+              ⋯
+            </button>
+            <div
+              id={menuId}
+              ref={panelRef}
+              popover="auto"
+              className="card-menu-panel"
+              role="menu"
+              onToggle={(event) => {
+                if (event.newState === "open") placeMenu();
+              }}
+            >
               {mode === "removed" ? (
                 <button
                   type="button"
                   role="menuitem"
                   onClick={() => {
-                    menuRef.current && (menuRef.current.open = false);
+                    closeMenu();
                     onAction?.("restore", item.key);
                   }}
                 >
@@ -168,7 +199,7 @@ export function PosterCard({
                     type="button"
                     role="menuitem"
                     onClick={() => {
-                      menuRef.current && (menuRef.current.open = false);
+                      closeMenu();
                       onAction?.("watched", item.key);
                     }}
                   >
@@ -178,7 +209,7 @@ export function PosterCard({
                     type="button"
                     role="menuitem"
                     onClick={() => {
-                      menuRef.current && (menuRef.current.open = false);
+                      closeMenu();
                       onAction?.("hidden", item.key);
                     }}
                   >
@@ -187,7 +218,7 @@ export function PosterCard({
                 </>
               )}
             </div>
-          </details>
+          </div>
         ) : null}
       </div>
 
