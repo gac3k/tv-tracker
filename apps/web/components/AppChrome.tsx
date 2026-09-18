@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { NowPlaying } from "../lib/api";
+import { authClient } from "../lib/auth-client";
 import { OmniSearch } from "./OmniSearch";
 import { ThemeToggle } from "./ThemeToggle";
 
@@ -143,14 +144,22 @@ function AppNav() {
   );
 }
 
+function signOut() {
+  void authClient.signOut({
+    fetchOptions: { onSuccess: () => { window.location.href = "/login"; } },
+  });
+}
+
 export function AppChrome({
   children,
   nowPlaying,
   version,
+  userName,
 }: {
   children: React.ReactNode;
   nowPlaying: NowPlaying | null;
   version: string | null;
+  userName: string;
 }) {
   const playing = nowPlayingLabel(nowPlaying);
 
@@ -165,13 +174,15 @@ export function AppChrome({
         </Link>
         <AppNav />
         <div className="rail-foot">
-          <div className="rail-user" title="Account settings — coming later">
+          <div className="rail-user">
             <span className="rail-avatar" aria-hidden="true">
-              Y
+              {userName.slice(0, 1).toUpperCase()}
             </span>
             <span className="rail-user-meta">
-              <span className="rail-user-name">You</span>
-              <span className="rail-user-sub">Local</span>
+              <span className="rail-user-name">{userName}</span>
+              <button type="button" className="rail-user-sub rail-sign-out" onClick={signOut}>
+                Sign out
+              </button>
             </span>
           </div>
           {version && (
@@ -200,6 +211,9 @@ export function AppChrome({
           </p>
           <OmniSearch />
           <ThemeToggle />
+          <button type="button" className="button-ghost" onClick={signOut}>
+            Sign out
+          </button>
         </header>
         {children}
       </div>

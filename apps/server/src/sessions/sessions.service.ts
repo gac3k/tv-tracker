@@ -1,5 +1,6 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { desc } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
+import { actorUserId } from "../auth";
 import { config } from "../config";
 import type { Db } from "../db/client";
 import { DB } from "../db/db.provider";
@@ -40,6 +41,7 @@ export class SessionsService {
     let rows = this.db
       .select()
       .from(playbackSessions)
+      .where(eq(playbackSessions.userId, actorUserId()))
       .orderBy(desc(playbackSessions.endedAt))
       .limit(500)
       .all();

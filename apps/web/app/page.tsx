@@ -1,4 +1,5 @@
-import { api, type LibraryCard, type NowPlaying } from "../lib/api";
+import type { LibraryCard, NowPlaying } from "../lib/api";
+import { api } from "../lib/server-api";
 import { splitDashboard } from "../lib/dashboard";
 import { LibraryShelf } from "../components/LibraryShelf";
 import { MediaTile, formatAirDate } from "../components/MediaTile";

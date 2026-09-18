@@ -1,7 +1,8 @@
 import { notFound, redirect } from "next/navigation";
 import { Overlay } from "../../../../components/Overlay";
 import { RemoteLoginConsole } from "../../../../components/RemoteLoginConsole";
-import { api, PROVIDER_LABELS } from "../../../../lib/api";
+import { PROVIDER_LABELS } from "../../../../lib/api";
+import { api } from "../../../../lib/server-api";
 
 export const dynamic = "force-dynamic";
 

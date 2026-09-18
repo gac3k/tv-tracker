@@ -9,7 +9,10 @@ const nextConfig: NextConfig = {
   // Proxy browser calls to the API server so the web app never needs CORS.
   async rewrites() {
     const api = process.env.API_URL ?? "http://127.0.0.1:3000";
-    return [{ source: "/api/:path*", destination: `${api}/:path*` }];
+    return [
+      { source: "/api/auth/:path*", destination: `${api}/api/auth/:path*` },
+      { source: "/api/:path*", destination: `${api}/:path*` },
+    ];
   },
 };
 

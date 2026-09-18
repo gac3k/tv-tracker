@@ -1,4 +1,5 @@
 import { and, eq } from "drizzle-orm";
+import { actorUserId } from "../auth";
 import { titleCacheKey } from "../artwork/artwork.service";
 import { config } from "../config";
 import type { Db } from "../db/client";
@@ -10,12 +11,26 @@ import { unwrapTvDetails } from "../watchlist/upcoming";
 import type { WatchMark } from "./plugin";
 
 export function pendingWatched(db: Db, sink: string): WatchMark[] {
-  const observations = db.select().from(providerObservations).all();
+  const userId = actorUserId();
+  const observations = db
+    .select()
+    .from(providerObservations)
+    .where(eq(providerObservations.userId, userId))
+    .all();
   const items = aggregateObservations(observations, config.WATCHED_THRESHOLD_PERCENT);
-  const overrideRows = db.select().from(libraryOverrides).all();
+  const overrideRows = db
+    .select()
+    .from(libraryOverrides)
+    .where(eq(libraryOverrides.userId, userId))
+    .all();
   const overrides = overrideMap(overrideRows);
   const already = new Set(
-    db.select().from(exportMarks).where(eq(exportMarks.sink, sink)).all().map((row) => row.contentKey)
+    db
+      .select()
+      .from(exportMarks)
+      .where(and(eq(exportMarks.userId, userId), eq(exportMarks.sink, sink)))
+      .all()
+      .map((row) => row.contentKey)
   );
 
   const pending: WatchMark[] = [];
@@ -106,7 +121,7 @@ function tmdbTitle(db: Db, type: "tv" | "movie", tmdbId: number): { title: strin
   const followed = db
     .select()
     .from(watchlist)
-    .where(and(eq(watchlist.tmdbType, type), eq(watchlist.tmdbId, tmdbId)))
+    .where(and(eq(watchlist.userId, actorUserId()), eq(watchlist.tmdbType, type), eq(watchlist.tmdbId, tmdbId)))
     .get();
   if (followed?.title) return { title: followed.title, year: null };
 
@@ -163,11 +178,12 @@ function yearFromDate(value?: string | null): number | null {
 
 export function persistMarks(db: Db, sink: string, marked: Array<{ key: string; remoteId: string }>): void {
   const now = new Date();
+  const userId = actorUserId();
   for (const row of marked) {
     db.insert(exportMarks)
-      .values({ sink, contentKey: row.key, remoteId: row.remoteId, exportedAt: now })
+      .values({ userId, sink, contentKey: row.key, remoteId: row.remoteId, exportedAt: now })
       .onConflictDoUpdate({
-        target: [exportMarks.sink, exportMarks.contentKey],
+        target: [exportMarks.userId, exportMarks.sink, exportMarks.contentKey],
         set: { remoteId: row.remoteId, exportedAt: now },
       })
       .run();

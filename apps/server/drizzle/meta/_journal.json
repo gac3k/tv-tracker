@@ -50,6 +50,13 @@
       "when": 1789387240263,
       "tag": "0006_nasty_scorpion",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1789741338812,
+      "tag": "0007_overconfident_umar",
+      "breakpoints": true
     }
   ]
 }

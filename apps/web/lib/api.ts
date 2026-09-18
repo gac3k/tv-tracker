@@ -1,6 +1,6 @@
 // Server-side API client. Response shapes mirror @vod/server REST responses.
 // Bracket access so Next does not inline this at build time (Docker sets API_URL at runtime).
-function apiUrl(): string {
+export function apiUrl(): string {
   return process.env["API_URL"] ?? "http://127.0.0.1:3000";
 }
 
@@ -162,53 +162,6 @@ export interface JobsResponse {
   targets: JobTarget[];
   jobs: JobRun[];
 }
-
-async function get<T>(path: string): Promise<T | null> {
-  try {
-    const res = await fetch(`${apiUrl()}${path}`, { cache: "no-store" });
-    if (!res.ok) return null;
-    return (await res.json()) as T;
-  } catch {
-    return null;
-  }
-}
-
-export const api = {
-  providers: () => get<{ providers: ProviderCatalogItem[] }>("/providers"),
-  extension: () => get<{ token: string }>("/extension"),
-  settings: () =>
-    get<{
-      version: string;
-      tmdbApiKeySet: boolean;
-      tmdbApiKeySource: "env" | "settings" | null;
-      mcpEnabled: boolean;
-      tvOs: "webos" | "android";
-    }>("/settings"),
-  health: () => get<{ status: string; version: string }>("/health"),
-  status: (provider: string) => get<ProviderStatus>(`/providers/${provider}/status`),
-  jobs: () => get<JobsResponse>("/jobs"),
-  job: (id: number) => get<JobRunDetail>(`/jobs/${id}`),
-  async allStatuses(): Promise<ProviderStatus[]> {
-    const list = await this.providers();
-    if (!list) return [];
-    return list.providers.map((p) => ({
-      provider: p.id,
-      authenticated: p.lastSyncStatus === "auth_required" ? false : p.lastSyncStatus === "success" ? true : null,
-      lastSyncAt: p.lastSyncAt,
-      lastSuccessAt: p.lastSuccessAt,
-      lastSyncStatus: p.lastSyncStatus,
-      lastError: p.lastError,
-    }));
-  },
-  library: (search: string) => get<LibraryResponse>(`/library${search ? `?${search}` : ""}`),
-  nowPlaying: () => get<NowPlaying>("/now-playing"),
-  watchlist: () => get<{ items: WatchlistItem[] }>("/watchlist"),
-  upcoming: () => get<{ items: UpcomingItem[]; tmdbEnabled: boolean }>("/upcoming"),
-  catalogSearch: (q: string) =>
-    get<{ items: CatalogHit[]; tmdbEnabled: boolean }>(`/catalog/search?q=${encodeURIComponent(q)}`),
-  shows: () => get<{ items: ShowListItem[]; tmdbEnabled: boolean }>("/shows"),
-  show: (tmdbId: number) => get<ShowCatalog>(`/shows/tv/${tmdbId}`),
-};
 
 export interface WatchlistItem {
   tmdbId: number;

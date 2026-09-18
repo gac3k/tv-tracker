@@ -2,7 +2,7 @@ import { ExtensionToken } from "../../components/ExtensionToken";
 import { McpSettings } from "../../components/McpSettings";
 import { TmdbSettings } from "../../components/TmdbSettings";
 import { TvOsSettings } from "../../components/TvOsSettings";
-import { api } from "../../lib/api";
+import { api } from "../../lib/server-api";
 
 export const dynamic = "force-dynamic";
 

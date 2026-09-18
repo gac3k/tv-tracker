@@ -1,4 +1,5 @@
-import { desc } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
+import { actorUserId } from "../auth";
 import type { Db } from "../db/client";
 import { providerObservations } from "../db/schema";
 
@@ -27,6 +28,7 @@ export function getNowPlaying(
   const recent = db
     .select()
     .from(providerObservations)
+    .where(eq(providerObservations.userId, actorUserId()))
     .orderBy(desc(providerObservations.observedAt), desc(providerObservations.id))
     .limit(200)
     .all();

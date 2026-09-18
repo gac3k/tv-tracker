@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { Inject, Injectable } from "@nestjs/common";
 import { and, desc, eq, gte } from "drizzle-orm";
+import { actorUserId } from "../auth";
 import type { Db } from "../db/client";
 import { DB } from "../db/db.provider";
 import { providerObservations, syncState, type ObservationRow } from "../db/schema";
@@ -47,6 +48,7 @@ export class ObservationsService {
         .insert(providerObservations)
         .values({
           fingerprint: observationFingerprint(obs),
+          userId: actorUserId(),
           provider: obs.provider,
           profileId: obs.profileId,
           providerContentId: obs.providerContentId,
@@ -72,7 +74,7 @@ export class ObservationsService {
   }
 
   list(query: ObservationQuery = {}): ObservationRow[] {
-    const conditions = [];
+    const conditions = [eq(providerObservations.userId, actorUserId())];
     if (query.provider) {
       conditions.push(eq(providerObservations.provider, query.provider));
     }
@@ -82,7 +84,7 @@ export class ObservationsService {
     return this.db
       .select()
       .from(providerObservations)
-      .where(conditions.length ? and(...conditions) : undefined)
+      .where(and(...conditions))
       .orderBy(desc(providerObservations.observedAt), desc(providerObservations.id))
       .limit(query.limit ?? 100)
       .all();

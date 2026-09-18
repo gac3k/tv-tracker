@@ -1,4 +1,5 @@
 import type { Provider } from "@nestjs/common";
+import { ensureAdmin, initAuth } from "../auth";
 import { config } from "../config";
 import { openDb, type Db } from "./client";
 
@@ -7,5 +8,10 @@ export const DB = Symbol("DB");
 
 export const dbProvider: Provider = {
   provide: DB,
-  useFactory: (): Db => openDb(config.dbPath),
+  useFactory: (): Db => {
+    const db = openDb(config.dbPath);
+    initAuth(db);
+    ensureAdmin();
+    return db;
+  },
 };

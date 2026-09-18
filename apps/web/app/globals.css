@@ -611,6 +611,16 @@ a {
     color: var(--color-ink-3);
   }
 
+  .rail-sign-out {
+    border: 0;
+    padding: 0;
+    background: none;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+    text-align: left;
+  }
+
   .rail-version {
     display: block;
     margin: 0;
@@ -1977,4 +1987,33 @@ a.poster {
   .card:focus-within .poster {
     transform: none;
   }
+}
+
+.auth-page {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: var(--space-lg);
+}
+
+.auth-card {
+  width: min(24rem, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  padding: var(--space-lg);
+  background: var(--color-paper-2);
+  border: 1px solid var(--color-line-soft);
+  border-radius: var(--radius-md);
+}
+
+.auth-card .wordmark {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.auth-card .wordmark span {
+  color: var(--color-accent);
 }

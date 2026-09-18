@@ -119,7 +119,7 @@ describe("export marks", () => {
     db.insert(exportMarks)
       .values({ sink: "justwatch", contentKey: "netflix:1", remoteId: "tm2", exportedAt: now })
       .onConflictDoUpdate({
-        target: [exportMarks.sink, exportMarks.contentKey],
+        target: [exportMarks.userId, exportMarks.sink, exportMarks.contentKey],
         set: { remoteId: "tm2" },
       })
       .run();

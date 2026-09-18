@@ -1,4 +1,4 @@
-import { api } from "../../lib/api";
+import { api } from "../../lib/server-api";
 import { WatchlistTable } from "../../components/WatchlistTable";
 
 export const dynamic = "force-dynamic";

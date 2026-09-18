@@ -1,6 +1,7 @@
 import { Inject, Injectable, Optional } from "@nestjs/common";
 import { SyncQueue } from "../jobs/sync.queue";
-import { desc, inArray } from "drizzle-orm";
+import { and, desc, eq, inArray } from "drizzle-orm";
+import { actorUserId } from "../auth";
 import { ArtworkService, type ResolvedArtwork } from "../artwork/artwork.service";
 import { fetchTvDetails, isTmdbEnabled, type TmdbTvDetails } from "../artwork/tmdb";
 import { config } from "../config";
@@ -20,6 +21,7 @@ import {
 } from "./aggregate";
 import { applyOverride, isHidden, overrideMap, type OverrideAction } from "./overrides";
 import { pickPlayback, toPlaybackLaunch, type PlaybackLaunch } from "./playback";
+import { readAppSettings } from "../settings/app-settings";
 import { logger } from "../logger";
 import { PluginRegistry } from "../plugins/registry.service";
 import { ProviderRegistry } from "../providers/registry.service";
@@ -126,12 +128,15 @@ export class LibraryService {
     const observations = this.db
       .select()
       .from(providerObservations)
+      .where(eq(providerObservations.userId, actorUserId()))
       .orderBy(desc(providerObservations.observedAt))
       .all()
       .filter((row) => !hidden.has(row.provider));
 
     const all = aggregateObservations(observations, config.WATCHED_THRESHOLD_PERCENT);
-    const overrides = overrideMap(this.db.select().from(libraryOverrides).all());
+    const overrides = overrideMap(
+      this.db.select().from(libraryOverrides).where(eq(libraryOverrides.userId, actorUserId())).all()
+    );
     const tracking = query.tracking ?? "active";
     let items =
       tracking === "removed"
@@ -168,6 +173,7 @@ export class LibraryService {
       }))
     );
 
+    const jellyfinServerUrl = this.registry.readSettings("jellyfin").values.serverUrl;
     let cards: LibraryCard[] = items.map((item) => {
       const artwork = artworkById.get(item.key) ?? null;
       const withProgress = applyDerivedProgress(
@@ -184,9 +190,12 @@ export class LibraryService {
             : null
         ),
         artwork,
-        url: providerUrl(item.provider, item.providerContentId, item.mediaType, {
-          jellyfinServerUrl: this.registry.readSettings("jellyfin").values.serverUrl,
-        }),
+        url: providerUrl(
+          item.provider,
+          item.providerContentId,
+          item.mediaType,
+          jellyfinServerUrl
+        ),
       };
     });
 
@@ -340,16 +349,20 @@ export class LibraryService {
     const unique = [...new Set(keys)];
     if (unique.length === 0) return { updated: 0 };
     if (action === "restore") {
-      this.db.delete(libraryOverrides).where(inArray(libraryOverrides.key, unique)).run();
+      this.db
+        .delete(libraryOverrides)
+        .where(and(eq(libraryOverrides.userId, actorUserId()), inArray(libraryOverrides.key, unique)))
+        .run();
       return { updated: unique.length };
     }
     const now = new Date();
+    const userId = actorUserId();
     for (const key of unique) {
       this.db
         .insert(libraryOverrides)
-        .values({ key, action, updatedAt: now })
+        .values({ userId, key, action, updatedAt: now })
         .onConflictDoUpdate({
-          target: libraryOverrides.key,
+          target: [libraryOverrides.userId, libraryOverrides.key],
           set: { action, updatedAt: now },
         })
         .run();
@@ -390,16 +403,17 @@ export class LibraryService {
     const observations = this.db
       .select()
       .from(providerObservations)
+      .where(eq(providerObservations.userId, actorUserId()))
       .orderBy(desc(providerObservations.observedAt))
       .all()
       .filter((row) => !hidden.has(row.provider));
     const items = aggregateObservations(observations, config.WATCHED_THRESHOLD_PERCENT);
-    const overrides = overrideMap(this.db.select().from(libraryOverrides).all());
+    const overrides = overrideMap(
+      this.db.select().from(libraryOverrides).where(eq(libraryOverrides.userId, actorUserId())).all()
+    );
     const visible = items.filter((item) => !isHidden(item, overrides));
     const picked = pickPlayback(visible, query);
     if (!picked) return null;
-    return toPlaybackLaunch(picked, query.trim(), {
-      jellyfinServerUrl: this.registry.readSettings("jellyfin").values.serverUrl,
-    });
+    return toPlaybackLaunch(picked, query.trim(), readAppSettings().tvOs);
   }
 }

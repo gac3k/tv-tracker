@@ -7,6 +7,7 @@ function row(overrides: Partial<ObservationRow>): ObservationRow {
   return {
     id: nextId++,
     fingerprint: `fp-${nextId}`,
+    userId: "admin",
     provider: "netflix",
     profileId: "p1",
     providerContentId: "100",

@@ -19,7 +19,7 @@ export function inferSessions(
 ): NewSessionRow[] {
   const groups = new Map<string, ObservationRow[]>();
   for (const obs of observations) {
-    const key = `${obs.provider} ${obs.profileId ?? ""} ${obs.providerContentId}`;
+    const key = `${obs.userId} ${obs.provider} ${obs.profileId ?? ""} ${obs.providerContentId}`;
     const group = groups.get(key);
     if (group) {
       group.push(obs);
@@ -47,6 +47,7 @@ export function inferSessions(
         .filter((p): p is number => typeof p === "number");
       const endProgress = progresses.length ? Math.max(...progresses) : null;
       sessions.push({
+        userId: first.userId,
         provider: first.provider,
         profileId: first.profileId,
         providerContentId: first.providerContentId,

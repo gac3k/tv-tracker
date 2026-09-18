@@ -1,5 +1,6 @@
 import { Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { eq } from "drizzle-orm";
+import { actorUserId } from "../auth";
 import {
   fetchSeason,
   fetchTvDetails,
@@ -135,7 +136,9 @@ export class ShowsService {
     const tv = await this.loadTv(tmdbId);
     if (!tv) throw new NotFoundException();
     const seasons = await this.loadSeasons(tmdbId, tv);
-    const overrides = overrideMap(this.db.select().from(libraryOverrides).all());
+    const overrides = overrideMap(
+      this.db.select().from(libraryOverrides).where(eq(libraryOverrides.userId, actorUserId())).all()
+    );
     const marked = watchedFromOverrides(tmdbId, toCatalog(seasons), overrides);
     const observed = await this.observedCompleted(tmdbId);
     const today = todayStamp();
@@ -190,7 +193,9 @@ export class ShowsService {
 
     const catalog = await this.catalogSeasons(tmdbId);
     if (!catalog) throw new NotFoundException();
-    const overrides = overrideMap(this.db.select().from(libraryOverrides).all());
+    const overrides = overrideMap(
+      this.db.select().from(libraryOverrides).where(eq(libraryOverrides.userId, actorUserId())).all()
+    );
     const current = watchedFromOverrides(tmdbId, catalog, overrides);
     const mark = toMark(body);
     if (!mark) return { updated: 0 };
@@ -208,6 +213,7 @@ export class ShowsService {
     const stale = this.db
       .select()
       .from(libraryOverrides)
+      .where(eq(libraryOverrides.userId, actorUserId()))
       .all()
       .map((row) => row.key)
       .filter((key) => isTvOverrideKey(key, tmdbId));

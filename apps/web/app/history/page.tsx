@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { api } from "../../lib/api";
+import { api } from "../../lib/server-api";
 import { FilterBar } from "../../components/FilterBar";
 import { HistoryTable } from "../../components/HistoryTable";
 

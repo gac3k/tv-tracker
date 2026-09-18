@@ -1,5 +1,6 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { and, desc, eq } from "drizzle-orm";
+import { actorUserId } from "../auth";
 import {
   fetchMovieDetails,
   fetchTvDetails,
@@ -78,6 +79,7 @@ export class WatchlistService {
     return this.db
       .select()
       .from(watchlist)
+      .where(eq(watchlist.userId, actorUserId()))
       .orderBy(desc(watchlist.addedAt))
       .all()
       .map(toWatchlistItem);
@@ -94,6 +96,7 @@ export class WatchlistService {
     this.db
       .insert(watchlist)
       .values({
+        userId: actorUserId(),
         tmdbType: input.tmdbType,
         tmdbId: input.tmdbId,
         title,
@@ -101,7 +104,7 @@ export class WatchlistService {
         addedAt: now,
       })
       .onConflictDoUpdate({
-        target: [watchlist.tmdbType, watchlist.tmdbId],
+        target: [watchlist.userId, watchlist.tmdbType, watchlist.tmdbId],
         set: { title, posterPath: input.posterPath ?? null, addedAt: now },
       })
       .run();
@@ -117,7 +120,9 @@ export class WatchlistService {
   remove(tmdbType: "tv" | "movie", tmdbId: number): { removed: boolean } {
     const deleted = this.db
       .delete(watchlist)
-      .where(and(eq(watchlist.tmdbType, tmdbType), eq(watchlist.tmdbId, tmdbId)))
+      .where(
+        and(eq(watchlist.userId, actorUserId()), eq(watchlist.tmdbType, tmdbType), eq(watchlist.tmdbId, tmdbId))
+      )
       .run();
     return { removed: (deleted.changes ?? 0) > 0 };
   }
