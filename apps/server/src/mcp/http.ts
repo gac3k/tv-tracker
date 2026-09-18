@@ -1,7 +1,7 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { randomUUID } from "node:crypto";
 import type { LibraryService } from "../library/library.service";
-import { launcherDeeplink, handleMcpRequest, type JsonRpcRequest } from "./mcp";
+import { handleMcpRequest, type JsonRpcRequest } from "./mcp";
 import { readAppSettings } from "../settings/app-settings";
 
 const SSE_HEADERS = {
@@ -32,14 +32,16 @@ export function mountMcp(app: FastifyInstance, library: LibraryService): void {
     resolve: "/mcp/resolve?q=",
   }));
 
+  app.post("/mcp", streamable);
+  app.post("/mcp/sse", streamable);
+
   app.get("/mcp/resolve", async (request, reply) => {
     if (!enabled()) return reply.code(404).send({ error: "MCP is disabled" });
     const query = String((request.query as { q?: string }).q ?? "").trim();
     if (!query) return reply.code(400).send({ error: "q is required" });
     const launch = resolve(query);
-    const payload = launch ? launcherDeeplink(launch, os()) : null;
-    if (!payload) return reply.code(404).send({ error: `No library match for "${query}"` });
-    return payload;
+    if (!launch?.tvUrl) return reply.code(404).send({ error: `No library match for "${query}"` });
+    return { tvUrl: launch.tvUrl };
   });
 
   app.get("/mcp/sse", (request: FastifyRequest, reply: FastifyReply) => {
@@ -81,6 +83,17 @@ export function mountMcp(app: FastifyInstance, library: LibraryService): void {
     }
     return reply.code(202).send();
   });
+
+  function streamable(request: FastifyRequest, reply: FastifyReply) {
+    if (!enabled()) return reply.code(404).send({ error: "MCP is disabled" });
+    const responses = [];
+    for (const msg of asRpcBatch(request.body)) {
+      const response = handleMcpRequest(msg, resolve, os());
+      if (response) responses.push(response);
+    }
+    if (responses.length === 0) return reply.code(202).send();
+    return responses.length === 1 ? responses[0] : responses;
+  }
 }
 
 function asRpcBatch(body: unknown): JsonRpcRequest[] {

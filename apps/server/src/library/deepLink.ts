@@ -1,3 +1,5 @@
+import type { TvOs } from "../settings/app-settings";
+
 /**
  * Deep links back to the content in each provider's web player.
  *
@@ -10,7 +12,7 @@ export function providerUrl(
   provider: string,
   providerContentId: string,
   mediaType: string,
-  extras?: { jellyfinServerUrl?: string }
+  jellyfinServerUrl?: string
 ): string | null {
   const id = providerContentId?.trim();
   if (!id) return null;
@@ -39,7 +41,7 @@ export function providerUrl(
       return `https://www.disneyplus.com/play/${encodeURIComponent(id)}`;
 
     case "jellyfin": {
-      const server = extras?.jellyfinServerUrl?.trim().replace(/\/+$/, "");
+      const server = jellyfinServerUrl?.trim().replace(/\/+$/, "");
       return server ? `${server}/web/#/details?id=${encodeURIComponent(id)}` : null;
     }
 
@@ -71,8 +73,7 @@ export interface WebosLaunch {
 export function webosLaunch(
   provider: string,
   providerContentId: string,
-  mediaType: string,
-  extras?: { jellyfinServerUrl?: string }
+  mediaType: string
 ): WebosLaunch | null {
   const appId = WEBOS_APP_ID[provider];
   if (!appId) return null;
@@ -86,7 +87,7 @@ export function webosLaunch(
   if (provider === "jellyfin") {
     return { appId, contentId: `id=${id}` };
   }
-  const url = providerUrl(provider, id, mediaType, extras);
+  const url = providerUrl(provider, id, mediaType);
   return url ? { appId, contentId: url } : null;
 }
 
@@ -100,11 +101,6 @@ const ANDROID_PACKAGE: Record<string, string> = {
   jellyfin: "org.jellyfin.androidtv",
 };
 
-export interface AndroidLaunch {
-  /** URI for `remote.turn_on` activity / `ACTION_VIEW`. */
-  deeplink: string;
-}
-
 /**
  * Content URI (or app id) the Android TV launcher can open.
  * Jellyfin Android TV has no content deep link — package only.
@@ -112,20 +108,32 @@ export interface AndroidLaunch {
 export function androidLaunch(
   provider: string,
   providerContentId: string,
-  mediaType: string,
-  extras?: { jellyfinServerUrl?: string }
-): AndroidLaunch | null {
+  mediaType: string
+): string | null {
   const pkg = ANDROID_PACKAGE[provider];
   if (!pkg) return null;
   const id = providerContentId?.trim();
   if (!id) return null;
 
   if (provider === "prime") {
-    return { deeplink: `https://app.primevideo.com/detail?gti=${encodeURIComponent(id)}` };
+    return `https://app.primevideo.com/detail?gti=${encodeURIComponent(id)}`;
   }
   if (provider === "jellyfin") {
-    return { deeplink: pkg };
+    return pkg;
   }
-  const url = providerUrl(provider, id, mediaType, extras);
-  return url ? { deeplink: url } : null;
+  return providerUrl(provider, id, mediaType);
+}
+
+/** Launcher target for the configured TV OS. */
+export type TvUrl = string | { id: string; contentId: string };
+
+export function tvUrl(
+  provider: string,
+  providerContentId: string,
+  mediaType: string,
+  os: TvOs
+): TvUrl | null {
+  if (os === "android") return androidLaunch(provider, providerContentId, mediaType);
+  const launch = webosLaunch(provider, providerContentId, mediaType);
+  return launch ? { id: launch.appId, contentId: launch.contentId } : null;
 }

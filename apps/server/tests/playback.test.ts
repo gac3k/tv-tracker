@@ -56,13 +56,18 @@ describe("pickPlayback", () => {
 });
 
 describe("toPlaybackLaunch", () => {
-  it("includes the webOS Netflix content target", () => {
-    const launch = toPlaybackLaunch(item(), "1670");
+  it("includes a webOS tvUrl for Netflix", () => {
+    const launch = toPlaybackLaunch(item(), "1670", "webos");
     expect(launch.url).toBe("https://www.netflix.com/watch/80189685");
-    expect(launch.webos).toEqual({
-      appId: "netflix",
+    expect(launch.tvUrl).toEqual({
+      id: "netflix",
       contentId: "m=https://www.netflix.com/watch/80189685",
     });
-    expect(launch.android).toEqual({ deeplink: "https://www.netflix.com/watch/80189685" });
+  });
+
+  it("includes an Android tvUrl when that OS is selected", () => {
+    expect(toPlaybackLaunch(item(), "1670", "android").tvUrl).toBe(
+      "https://www.netflix.com/watch/80189685"
+    );
   });
 });

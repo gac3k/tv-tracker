@@ -4,8 +4,8 @@ import type { TvOs } from "../settings/app-settings";
 export function resolveTool(os: TvOs) {
   const description =
     os === "android"
-      ? 'Resolve a movie or TV show from the local vod-tracker library into an Android TV deeplink. Pass only the title (e.g. "1670"), not the whole sentence. After this tool returns, turn the TV on if needed, then open the deeplink with the Android system launcher (Home Assistant: remote.turn_on with activity set to the returned deeplink, or androidtv.adb_command `am start -a android.intent.action.VIEW -d <deeplink>`). Do not invent ids; if nothing matches, say so.'
-      : 'Resolve a movie or TV show from the local vod-tracker library into an LG webOS launch payload. Pass only the title (e.g. "1670"), not the whole sentence. After this tool returns, turn the TV on if needed, then call Home Assistant webostv.command with command "system.launcher/launch" and payload { "id", "contentId" }. Do not invent ids; if nothing matches, say so.';
+      ? 'Resolve a movie or TV show from the local vod-tracker library into a tvUrl. Pass only the title (e.g. "1670"), not the whole sentence. After this tool returns, turn the TV on if needed, then open tvUrl with the Android system launcher (Home Assistant: remote.turn_on with activity set to tvUrl, or androidtv.adb_command `am start -a android.intent.action.VIEW -d <tvUrl>`). Do not invent ids; if nothing matches, say so.'
+      : 'Resolve a movie or TV show from the local vod-tracker library into a tvUrl. Pass only the title (e.g. "1670"), not the whole sentence. After this tool returns, turn the TV on if needed, then call Home Assistant webostv.command with command "system.launcher/launch" and payload tvUrl ({ "id", "contentId" }). Do not invent ids; if nothing matches, say so.';
   return {
     name: "resolve_playback",
     description,
@@ -34,14 +34,6 @@ export interface JsonRpcResponse {
 }
 
 export type ResolveFn = (query: string) => PlaybackLaunch | null;
-
-/** OS-specific payload the TV system launcher can open. */
-export function launcherDeeplink(launch: PlaybackLaunch, os: TvOs): unknown | null {
-  if (os === "android") {
-    return launch.android ? { deeplink: launch.android.deeplink } : null;
-  }
-  return launch.webos ? { id: launch.webos.appId, contentId: launch.webos.contentId } : null;
-}
 
 /** Handle one MCP JSON-RPC message. Notifications return null. */
 export function handleMcpRequest(
@@ -88,8 +80,7 @@ export function handleMcpRequest(
         };
       }
       const launch = resolve(query);
-      const payload = launch ? launcherDeeplink(launch, os) : null;
-      if (!payload) {
+      if (!launch?.tvUrl) {
         return {
           jsonrpc: "2.0",
           id,
@@ -102,7 +93,7 @@ export function handleMcpRequest(
       return {
         jsonrpc: "2.0",
         id,
-        result: { content: [{ type: "text", text: JSON.stringify(payload) }] },
+        result: { content: [{ type: "text", text: JSON.stringify({ tvUrl: launch.tvUrl }) }] },
       };
     }
     default:

@@ -1,5 +1,6 @@
 import { groupByTitle, isInProgress, type LibraryItem } from "./aggregate";
-import { androidLaunch, providerUrl, webosLaunch, type AndroidLaunch, type WebosLaunch } from "./deepLink";
+import { providerUrl, tvUrl, type TvUrl } from "./deepLink";
+import type { TvOs } from "../settings/app-settings";
 
 export interface PlaybackLaunch {
   query: string;
@@ -13,8 +14,7 @@ export interface PlaybackLaunch {
   progress: number | null;
   completed: boolean;
   url: string | null;
-  webos: WebosLaunch | null;
-  android: AndroidLaunch | null;
+  tvUrl: TvUrl | null;
 }
 
 /** Score a library title against a free-text query from Assist. */
@@ -48,12 +48,7 @@ export function pickPlayback(items: LibraryItem[], query: string): LibraryItem |
   return best?.item ?? null;
 }
 
-export function toPlaybackLaunch(
-  item: LibraryItem,
-  query: string,
-  extras?: { jellyfinServerUrl?: string }
-): PlaybackLaunch {
-  const url = providerUrl(item.provider, item.providerContentId, item.mediaType, extras);
+export function toPlaybackLaunch(item: LibraryItem, query: string, os: TvOs): PlaybackLaunch {
   return {
     query,
     title: item.showTitle ?? item.title ?? item.providerContentId,
@@ -65,8 +60,7 @@ export function toPlaybackLaunch(
     episodeNumber: item.episodeNumber,
     progress: item.progress,
     completed: item.completed,
-    url,
-    webos: webosLaunch(item.provider, item.providerContentId, item.mediaType, extras),
-    android: androidLaunch(item.provider, item.providerContentId, item.mediaType, extras),
+    url: providerUrl(item.provider, item.providerContentId, item.mediaType),
+    tvUrl: tvUrl(item.provider, item.providerContentId, item.mediaType, os),
   };
 }

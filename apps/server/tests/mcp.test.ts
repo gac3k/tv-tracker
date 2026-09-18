@@ -14,11 +14,19 @@ const launch: PlaybackLaunch = {
   progress: 40,
   completed: false,
   url: "https://www.netflix.com/watch/80189685",
-  webos: { appId: "netflix", contentId: "m=https://www.netflix.com/watch/80189685" },
-  android: { deeplink: "https://www.netflix.com/watch/80189685" },
+  tvUrl: { id: "netflix", contentId: "m=https://www.netflix.com/watch/80189685" },
 };
 
 describe("MCP JSON-RPC", () => {
+  it("advertises tools on initialize", () => {
+    const res = handleMcpRequest({ jsonrpc: "2.0", id: 0, method: "initialize" }, () => null);
+    expect(res?.result).toEqual({
+      protocolVersion: "2024-11-05",
+      capabilities: { tools: {} },
+      serverInfo: { name: "vod-tracker", version: "0.1.0" },
+    });
+  });
+
   it("lists the resolve_playback tool", () => {
     const res = handleMcpRequest({ jsonrpc: "2.0", id: 1, method: "tools/list" }, () => null);
     expect(res?.result).toEqual({
@@ -28,7 +36,7 @@ describe("MCP JSON-RPC", () => {
     });
   });
 
-  it("returns the webOS launcher payload from resolve_playback", () => {
+  it("returns tvUrl from resolve_playback", () => {
     const res = handleMcpRequest(
       {
         jsonrpc: "2.0",
@@ -40,12 +48,11 @@ describe("MCP JSON-RPC", () => {
     );
     const text = (res?.result as { content: Array<{ text: string }> }).content[0]?.text;
     expect(JSON.parse(text ?? "{}")).toEqual({
-      id: "netflix",
-      contentId: "m=https://www.netflix.com/watch/80189685",
+      tvUrl: { id: "netflix", contentId: "m=https://www.netflix.com/watch/80189685" },
     });
   });
 
-  it("returns an Android deeplink when the TV OS is android", () => {
+  it("returns an Android tvUrl when the launch already has one", () => {
     const res = handleMcpRequest(
       {
         jsonrpc: "2.0",
@@ -53,12 +60,11 @@ describe("MCP JSON-RPC", () => {
         method: "tools/call",
         params: { name: "resolve_playback", arguments: { query: "1670" } },
       },
-      () => launch,
-      "android"
+      () => ({ ...launch, tvUrl: "https://www.netflix.com/watch/80189685" })
     );
     const text = (res?.result as { content: Array<{ text: string }> }).content[0]?.text;
     expect(JSON.parse(text ?? "{}")).toEqual({
-      deeplink: "https://www.netflix.com/watch/80189685",
+      tvUrl: "https://www.netflix.com/watch/80189685",
     });
   });
 

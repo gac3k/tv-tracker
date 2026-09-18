@@ -46,7 +46,7 @@ export function McpSettings({ enabled: initiallyEnabled }: { enabled: boolean })
       </div>
       <p className="hint">
         In Home Assistant: Settings → Devices & services → Add integration → Model Context Protocol.
-        SSE URL is <code>/mcp/sse</code> on this API host (port 3000). Enable that MCP API on the
+        URL is <code>/mcp</code> on this API host (e.g. <code>http://api.tv-tracker.lan/mcp</code>). Enable that MCP API on the
         conversation agent next to Assist. The <code>resolve_playback</code> tool returns a
         launcher deeplink for the TV OS chosen above. Test with <code>/mcp/resolve?q=1670</code>.
       </p>
