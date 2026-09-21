@@ -1,66 +1,15 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { NowPlaying } from "../lib/api";
 import { authClient } from "../lib/auth-client";
+import { Icon, type IconName } from "./Icon";
 import { OmniSearch } from "./OmniSearch";
 import { ThemeToggle } from "./ThemeToggle";
 
-type IconName =
-  | "dashboard"
-  | "history"
-  | "watchlist"
-  | "untracked"
-  | "providers"
-  | "jobs"
-  | "settings";
-
-function RailIcon({ name }: { name: IconName }) {
-  return (
-    <svg className="rail-icon" viewBox="0 0 24 24" aria-hidden="true">
-      {name === "dashboard" && (
-        <>
-          <rect x="3" y="3" width="8" height="8" rx="1.5" />
-          <rect x="13" y="3" width="8" height="5" rx="1.5" />
-          <rect x="13" y="10" width="8" height="11" rx="1.5" />
-          <rect x="3" y="13" width="8" height="8" rx="1.5" />
-        </>
-      )}
-      {name === "history" && (
-        <>
-          <circle cx="12" cy="12" r="8" />
-          <path d="M12 8v5l3 2" />
-        </>
-      )}
-      {name === "watchlist" && (
-        <>
-          <path d="M6 4h12v16l-6-3.5L6 20V4z" />
-        </>
-      )}
-      {name === "untracked" && (
-        <>
-          <circle cx="12" cy="12" r="8" />
-          <path d="M8 8l8 8M16 8l-8 8" />
-        </>
-      )}
-      {name === "providers" && (
-        <>
-          <path d="M12 4 4 8l8 4 8-4-8-4z" />
-          <path d="m4 12 8 4 8-4" />
-          <path d="m4 16 8 4 8-4" />
-        </>
-      )}
-      {name === "jobs" && <path d="M22 12h-4l-3 7-6-14-3 7H2" />}
-      {name === "settings" && (
-        <>
-          <circle cx="12" cy="12" r="3" />
-          <path d="M12 3v2M12 19v2M5 5l1.5 1.5M17.5 17.5 19 19M3 12h2M19 12h2M5 19l1.5-1.5M17.5 6.5 19 5" />
-        </>
-      )}
-    </svg>
-  );
-}
+const RAIL_KEY = "vod-rail";
 
 const NAV: {
   href: string;
@@ -70,34 +19,34 @@ const NAV: {
   desktopOnly?: boolean;
   match: (path: string) => boolean;
 }[] = [
-  { href: "/", label: "Dashboard", short: "Home", icon: "dashboard", match: (p) => p === "/" },
+  { href: "/", label: "Dashboard", short: "Home", icon: "home", match: (p) => p === "/" },
   { href: "/history", label: "History", short: "History", icon: "history", match: (p) => p === "/history" },
   {
     href: "/watchlist",
     label: "Watchlist",
     short: "List",
-    icon: "watchlist",
+    icon: "device-tv",
     match: (p) => p === "/watchlist" || p.startsWith("/watchlist/"),
   },
   {
     href: "/untracked",
     label: "Not tracking",
     short: "Removed",
-    icon: "untracked",
+    icon: "eye-off",
     match: (p) => p === "/untracked",
   },
   {
     href: "/providers",
     label: "Providers",
     short: "Providers",
-    icon: "providers",
+    icon: "apps",
     match: (p) => p === "/providers" || p.startsWith("/providers/"),
   },
   {
     href: "/system/jobs",
     label: "Jobs",
     short: "Jobs",
-    icon: "jobs",
+    icon: "list-details",
     match: (p) => p.startsWith("/system"),
   },
   {
@@ -132,9 +81,10 @@ function AppNav() {
           <Link
             href={item.href}
             className={item.desktopOnly ? "rail-link rail-desktop-only" : "rail-link"}
+            title={item.label}
             aria-current={item.match(pathname) ? "page" : undefined}
           >
-            <RailIcon name={item.icon} />
+            <Icon name={item.icon} className="rail-icon" />
             <span className="rail-label-full">{item.label}</span>
             <span className="rail-label-short">{item.short}</span>
           </Link>
@@ -142,6 +92,15 @@ function AppNav() {
       ))}
     </nav>
   );
+}
+
+function persistRail(next: "collapsed" | "expanded"): void {
+  try {
+    localStorage.setItem(RAIL_KEY, next);
+  } catch {
+    // private mode
+  }
+  document.cookie = `${RAIL_KEY}=${next};path=/;max-age=31536000;samesite=lax`;
 }
 
 function signOut() {
@@ -155,27 +114,49 @@ export function AppChrome({
   nowPlaying,
   version,
   userName,
+  rail: initialRail = "expanded",
 }: {
   children: React.ReactNode;
   nowPlaying: NowPlaying | null;
   version: string | null;
   userName: string;
+  rail?: "collapsed" | "expanded";
 }) {
   const playing = nowPlayingLabel(nowPlaying);
+  const [rail, setRail] = useState(initialRail);
+  const collapsed = rail === "collapsed";
+
+  function toggleRail() {
+    const next = collapsed ? "expanded" : "collapsed";
+    setRail(next);
+    persistRail(next);
+  }
 
   return (
-    <div className="app">
+    <div className="app" data-rail={rail}>
       <a className="skip" href="#main">
         Skip to content
       </a>
       <aside className="rail">
-        <Link href="/" className="wordmark rail-brand">
-          vod<span>·</span>tracker
-        </Link>
+        <div className="rail-head">
+          <Link href="/" className="wordmark rail-brand">
+            vod<span>·</span>tracker
+          </Link>
+          <button
+            type="button"
+            className="rail-toggle"
+            onClick={toggleRail}
+            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            aria-pressed={collapsed}
+            title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            <Icon name={collapsed ? "layout-sidebar-left-expand" : "layout-sidebar-left-collapse"} className="rail-icon" />
+          </button>
+        </div>
         <AppNav />
         <div className="rail-foot">
           <div className="rail-user">
-            <span className="rail-avatar" aria-hidden="true">
+            <span className="rail-avatar" title={userName} aria-hidden="true">
               {userName.slice(0, 1).toUpperCase()}
             </span>
             <span className="rail-user-meta">

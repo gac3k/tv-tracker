@@ -6,11 +6,9 @@ import { useRouter } from "next/navigation";
 export function SyncButton({
   provider,
   exportWatched = false,
-  compact = false,
 }: {
   provider: string;
   exportWatched?: boolean;
-  compact?: boolean;
 }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
@@ -34,21 +32,6 @@ export function SyncButton({
     } finally {
       setBusy(false);
     }
-  }
-
-  if (compact) {
-    return (
-      <button
-        type="button"
-        className="button-ghost"
-        onClick={sync}
-        disabled={busy}
-        title={exportSink ? `Export ${provider}` : `Sync ${provider}`}
-        aria-label={exportSink ? `Export ${provider}` : `Sync ${provider}`}
-      >
-        {busy ? (exportSink ? "exporting…" : "syncing…") : (message ?? (exportSink ? "export" : "sync"))}
-      </button>
-    );
   }
 
   return (

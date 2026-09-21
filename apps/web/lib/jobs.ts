@@ -34,6 +34,31 @@ export function providerLabel(provider: string | null): string {
   return PROVIDER_LABELS[provider] ?? provider;
 }
 
+export function jobFailures(job: JobRun): { provider: string; error: string; skipped: boolean }[] {
+  const results = job.summary?.results ?? [];
+  const fromResults = results
+    .filter((result) => result.status === "error" || (result.status === "skipped" && result.error))
+    .map((result) => ({
+      provider: result.provider,
+      error: result.error ?? (result.status === "skipped" ? result.skipReason ?? "skipped" : "failed"),
+      skipped: result.status === "skipped",
+    }));
+  if (fromResults.length > 0) return fromResults;
+  if (job.status === "error" && job.error) {
+    return [{ provider: job.provider ?? "job", error: job.error, skipped: false }];
+  }
+  return [];
+}
+
+/** Failures from the latest finished job, in run order. */
+export function recentFailures(jobs: JobRun[]): { jobId: number; provider: string; error: string; skipped: boolean }[] {
+  const finished = jobs.find(
+    (job) => job.status === "error" || job.status === "success" || job.status === "skipped"
+  );
+  if (!finished) return [];
+  return jobFailures(finished).map((fail) => ({ jobId: finished.id, ...fail }));
+}
+
 export function summaryLine(job: JobRun): string {
   const results = job.summary?.results;
   if (results?.length) {

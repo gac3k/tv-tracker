@@ -3,11 +3,12 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { JobRunDetail } from "../lib/api";
-import { formatDuration, formatWhen, jobStatusState, providerLabel } from "../lib/jobs";
+import { formatDuration, formatWhen, jobFailures, jobStatusState, providerLabel } from "../lib/jobs";
 
 export function JobDetail({ initial }: { initial: JobRunDetail }) {
   const [job, setJob] = useState(initial);
   const live = job.status === "queued" || job.status === "running";
+  const failures = jobFailures(job);
 
   useEffect(() => {
     setJob(initial);
@@ -39,6 +40,19 @@ export function JobDetail({ initial }: { initial: JobRunDetail }) {
           All jobs
         </Link>
       </p>
+      {failures.length > 0 && (
+        <div className="error-stack" role="alert">
+          {failures.map((fail) => (
+            <div key={fail.provider} className="error-box">
+              <strong>
+                {providerLabel(fail.provider)}
+                {fail.skipped ? " skipped" : " failed"}
+              </strong>
+              <span>{fail.error}</span>
+            </div>
+          ))}
+        </div>
+      )}
       <dl className="job-meta">
         <div>
           <dt>Target</dt>
@@ -62,14 +76,6 @@ export function JobDetail({ initial }: { initial: JobRunDetail }) {
             <code>{job.queueJobId ?? "—"}</code>
           </dd>
         </div>
-        {job.errorType && (
-          <div>
-            <dt>Error</dt>
-            <dd>
-              {job.errorType}: {job.error}
-            </dd>
-          </div>
-        )}
       </dl>
       {job.logs.length === 0 ? (
         <div className="empty">

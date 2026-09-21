@@ -1,4 +1,4 @@
-import { Inject, Injectable } from "@nestjs/common";
+import { Inject, Injectable, Optional } from "@nestjs/common";
 import { count, desc, eq, inArray } from "drizzle-orm";
 import { config } from "../config";
 import type { Db } from "../db/client";
@@ -11,6 +11,7 @@ import { ProviderRegistry } from "../providers/registry.service";
 import type { ProviderName, SyncOptions } from "../providers/provider";
 import { SyncService } from "../sync/sync.service";
 import { redact } from "../utils/redact";
+import { HomeAssistantMqtt } from "../hass/hass-mqtt";
 
 export type JobTrigger = "schedule" | "manual" | "cli";
 export type JobStatus = "queued" | "running" | "success" | "error" | "skipped";
@@ -68,7 +69,8 @@ export class JobsService {
     @Inject(DB) private readonly db: Db,
     @Inject(SyncService) private readonly sync: SyncService,
     @Inject(ProviderRegistry) private readonly registry: ProviderRegistry,
-    @Inject(PluginRegistry) private readonly plugins: PluginRegistry
+    @Inject(PluginRegistry) private readonly plugins: PluginRegistry,
+    @Optional() @Inject(HomeAssistantMqtt) private readonly hass?: HomeAssistantMqtt
   ) {}
 
   begin(input: {
@@ -273,6 +275,7 @@ export class JobsService {
       error: problem?.error ?? null,
       errorType: problem?.errorType ?? null,
     });
+    this.hass?.publish();
     return { runId: run.id, results };
   }
 

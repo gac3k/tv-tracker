@@ -21,6 +21,7 @@ import { PluginRegistry } from "./plugins/registry.service";
 import { SyncService } from "./sync/sync.service";
 import { JobsService } from "./jobs/jobs.service";
 import { SyncQueue } from "./jobs/sync.queue";
+import { HomeAssistantMqtt } from "./hass/hass-mqtt";
 
 /** Single module — the service is small; split into feature modules when it isn't. */
 @Module({
@@ -49,6 +50,7 @@ import { SyncQueue } from "./jobs/sync.queue";
     RemoteLoginService,
     JobsService,
     SyncQueue,
+    HomeAssistantMqtt,
   ],
 })
 export class AppModule {}

@@ -1,7 +1,5 @@
+import { ConfigYamlEditor } from "../../components/ConfigYamlEditor";
 import { ExtensionToken } from "../../components/ExtensionToken";
-import { McpSettings } from "../../components/McpSettings";
-import { TmdbSettings } from "../../components/TmdbSettings";
-import { TvOsSettings } from "../../components/TvOsSettings";
 import { api } from "../../lib/server-api";
 
 export const dynamic = "force-dynamic";
@@ -22,31 +20,16 @@ export default async function SettingsPage() {
       </p>
       <ExtensionToken token={extension?.token ?? null} />
       <header className="shelf-head shelf-head-plugins">
-        <h2 className="shelf-title">TV</h2>
+        <h2 className="shelf-title">Config</h2>
       </header>
       <p className="shelf-lede">
-        Which living-room OS Assist should build launcher deeplinks for.
+        App settings live in YAML. MCP defaults to on. Assist deeplinks use <code>tv.os</code>{" "}
+        (<code>webos</code> or <code>android</code>). Set <code>homeassistant.mqtt_url</code> to
+        publish a TV Tracker device with a Last Watched sensor via MQTT discovery.{" "}
+        <code>TMDB_API_KEY</code>, <code>MCP_ENABLED</code>, <code>TV_OS</code>, and{" "}
+        <code>MQTT_URL</code> override the file when set.
       </p>
-      <TvOsSettings tvOs={settings?.tvOs ?? "webos"} />
-      <header className="shelf-head shelf-head-plugins">
-        <h2 className="shelf-title">MCP</h2>
-      </header>
-      <p className="shelf-lede">
-        Optional. Expose an MCP server so a conversation agent can resolve a title to a TV
-        deeplink and launch it.
-      </p>
-      <McpSettings enabled={settings?.mcpEnabled ?? false} />
-      <header className="shelf-head shelf-head-plugins">
-        <h2 className="shelf-title">TMDB</h2>
-      </header>
-      <p className="shelf-lede">
-        Optional. Posters, catalog search, and upcoming episodes need a free key from
-        themoviedb.org.
-      </p>
-      <TmdbSettings
-        set={settings?.tmdbApiKeySet ?? false}
-        source={settings?.tmdbApiKeySource ?? null}
-      />
+      <ConfigYamlEditor yaml={settings?.yaml ?? ""} envLocks={settings?.envLocks ?? []} />
     </main>
   );
 }

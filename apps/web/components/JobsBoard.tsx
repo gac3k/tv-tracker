@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { JobRun, JobsResponse } from "../lib/api";
-import { formatDuration, formatWhen, jobStatusState, providerLabel, summaryLine } from "../lib/jobs";
+import { formatDuration, formatWhen, jobStatusState, providerLabel, recentFailures, summaryLine } from "../lib/jobs";
 
 export function JobsBoard({ initial }: { initial: JobsResponse }) {
   const router = useRouter();
@@ -14,6 +14,7 @@ export function JobsBoard({ initial }: { initial: JobsResponse }) {
   const [message, setMessage] = useState<string | null>(null);
   const live = data.jobs.some((job) => job.status === "queued" || job.status === "running");
   const targets = data.targets ?? [];
+  const failures = recentFailures(data.jobs);
 
   useEffect(() => {
     setData(initial);
@@ -91,6 +92,19 @@ export function JobsBoard({ initial }: { initial: JobsResponse }) {
           : "The scheduler is off (SYNC_INTERVAL_MINUTES=0). Pick a source or plugin and run it here."}
       </p>
       {message && <p className="hint">{message}</p>}
+      {failures.length > 0 && (
+        <div className="error-stack" role="alert">
+          {failures.map((fail) => (
+            <Link key={fail.provider} href={`/system/jobs/${fail.jobId}`} className="error-box">
+              <strong>
+                {providerLabel(fail.provider)}
+                {fail.skipped ? " skipped" : " failed"}
+              </strong>
+              <span>{fail.error}</span>
+            </Link>
+          ))}
+        </div>
+      )}
       {data.jobs.length === 0 ? (
         <div className="empty">No jobs yet. Run one now, or wait for the schedule.</div>
       ) : (

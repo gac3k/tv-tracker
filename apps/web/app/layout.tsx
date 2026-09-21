@@ -17,8 +17,10 @@ const THEME_BOOT =
 const BARE = new Set(["/login", "/register"]);
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const themeCookie = (await cookies()).get("vod-theme")?.value;
+  const jar = await cookies();
+  const themeCookie = jar.get("vod-theme")?.value;
   const theme = themeCookie === "light" || themeCookie === "dark" ? themeCookie : undefined;
+  const rail = jar.get("vod-rail")?.value === "collapsed" ? "collapsed" : "expanded";
   const path = (await headers()).get("x-pathname") ?? "";
   const bare = BARE.has(path);
 
@@ -47,6 +49,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             nowPlaying={nowPlaying}
             version={health?.version ?? null}
             userName={session?.user.username || session?.user.name || "You"}
+            rail={rail}
           >
             {children}
           </AppChrome>

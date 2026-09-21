@@ -11,6 +11,7 @@ import { attachRemoteLoginGateway } from "./remote-login/remote-login.gateway";
 import { RemoteLoginService } from "./remote-login/remote-login.service";
 import { SyncQueue } from "./jobs/sync.queue";
 import { LibraryService } from "./library/library.service";
+import { WatchlistService } from "./watchlist/watchlist.service";
 import { getAuth, mountAuth } from "./auth";
 import { mountMcp } from "./mcp/http";
 import { PluginRegistry } from "./plugins/registry.service";
@@ -41,7 +42,7 @@ async function bootstrap(): Promise<void> {
   const fastify = app.getHttpAdapter().getInstance();
   app.get(PluginRegistry).mount(fastify);
   mountAuth(fastify, getAuth());
-  mountMcp(fastify, app.get(LibraryService));
+  mountMcp(fastify, app.get(LibraryService), app.get(WatchlistService));
 
   // Binding beyond 127.0.0.1 must be an explicit decision (HOST=0.0.0.0).
   await app.listen(config.PORT, config.HOST);

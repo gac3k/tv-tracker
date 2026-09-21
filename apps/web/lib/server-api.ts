@@ -34,10 +34,13 @@ export const api = {
   settings: () =>
     get<{
       version: string;
+      yaml: string;
       tmdbApiKeySet: boolean;
       tmdbApiKeySource: "env" | "settings" | null;
       mcpEnabled: boolean;
       tvOs: "webos" | "android";
+      mqttUrlSet: boolean;
+      envLocks: string[];
     }>("/settings"),
   health: () => get<{ status: string; version: string }>("/health"),
   status: (provider: string) => get<ProviderStatus>(`/providers/${provider}/status`),
