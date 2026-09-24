@@ -13,11 +13,12 @@ import type {
   VodProvider,
 } from "../provider";
 import {
+  canReadHistory,
   fetchEnrichments,
   fetchHistoryPage,
   fetchMetadata,
   fetchSelectedProfile,
-  PRIME_HOME,
+  PRIME_HISTORY_PAGE,
   resolveEndpoints,
 } from "./api";
 import { ContentProvider } from "../decorate";
@@ -32,29 +33,54 @@ const log = logger.child({ provider: "prime" });
   auth: "browser",
   fields: [],
   parserVersion: PRIME_PARSER_VERSION,
-  loginUrl: PRIME_HOME,
-  // ponytail: amazon.com only; add regional amazon.* hosts if Prime login lives there
-  cookieDomains: ["primevideo.com", "amazon.com"],
+  loginUrl: PRIME_HISTORY_PAGE,
+  description:
+    "Watch history is an Amazon account-settings page. Sign-in is finished only after that page loads, which may ask you to sign in to Amazon again.",
+  // Settings sign-in lands on the regional marketplace (amazon.pl, amazon.de, …), not amazon.com.
+  cookieDomains: [
+    "primevideo.com",
+    "amazon.com",
+    "amazon.ca",
+    "amazon.co.jp",
+    "amazon.co.uk",
+    "amazon.com.au",
+    "amazon.com.be",
+    "amazon.com.br",
+    "amazon.com.mx",
+    "amazon.com.tr",
+    "amazon.de",
+    "amazon.es",
+    "amazon.fr",
+    "amazon.in",
+    "amazon.it",
+    "amazon.nl",
+    "amazon.pl",
+    "amazon.se",
+  ],
 })
 export class PrimeProvider implements VodProvider {
   readonly name = "prime" as const;
 
   async login(): Promise<void> {
-    await runInteractiveLogin(this.name, PRIME_HOME, async (page) => {
-      // API probe works cookie-based; no page globals needed.
+    await runInteractiveLogin(this.name, PRIME_HISTORY_PAGE, async (page) => {
+      // getProfiles succeeds with a playback-only session. History stays 403 until
+      // the Amazon account-settings sign-in on this page has completed.
       const endpoints = await resolveEndpoints(page.context());
+      if (!(await canReadHistory(page.context(), endpoints))) return null;
       const profile = await fetchSelectedProfile(page.context(), endpoints);
-      return profile?.name ?? null;
+      return profile?.name ?? "";
     });
   }
 
   async isAuthenticated(): Promise<ProviderStatus> {
     const context = await openBrowserContext(this.name, { headless: true });
     try {
-      // Cookie-based API probe; no page navigation required.
       const endpoints = await resolveEndpoints(context);
+      if (!(await canReadHistory(context, endpoints))) {
+        return { authenticated: false };
+      }
       const profile = await fetchSelectedProfile(context, endpoints);
-      return { authenticated: profile != null, profileName: profile?.name };
+      return { authenticated: true, profileName: profile?.name };
     } finally {
       await context.close();
     }

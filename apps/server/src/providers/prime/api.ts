@@ -23,6 +23,12 @@ import type {
 } from "./types";
 
 export const PRIME_HOME = "https://www.primevideo.com";
+/**
+ * Watch history is an account-settings page. A Prime playback session (getProfiles)
+ * can be valid while this page still redirects to the marketplace sign-in, and the
+ * history API then answers HTTP 403 with a "page not found" shell.
+ */
+export const PRIME_HISTORY_PAGE = `${PRIME_HOME}/settings/watch-history`;
 
 /** Stable random UUID v4 identifying this client, same idea as UTS. */
 const DEVICE_ID = "b7c8e1f2-4a6d-4e2b-9c3f-8d5a7e901b24";
@@ -55,7 +61,11 @@ async function getJson<T>(
     throw new ProviderNetworkError("prime", `${what} request failed`, { cause: err });
   }
   if (status === 401 || status === 403) {
-    throw new ProviderAuthenticationError("prime", `${what} returned HTTP ${status} — login expired?`);
+    const message =
+      status === 403 && what === "History endpoint"
+        ? "History endpoint returned HTTP 403. Prime Video playback login cannot open watch history — finish the Amazon account sign-in on the watch history page (pnpm cli login prime)."
+        : `${what} returned HTTP ${status} — login expired?`;
+    throw new ProviderAuthenticationError("prime", message);
   }
   if (status === 429) {
     throw new ProviderRateLimitError("prime", `${what} rate limited (HTTP 429)`);
@@ -143,6 +153,20 @@ export async function fetchSelectedProfile(
     if (err instanceof ProviderAuthenticationError) {
       return null;
     }
+    throw err;
+  }
+}
+
+/** True when the session can read watch history, not merely a Prime playback profile. */
+export async function canReadHistory(
+  context: BrowserContext,
+  endpoints: PrimeEndpoints
+): Promise<boolean> {
+  try {
+    await fetchHistoryPage(context, endpoints, null);
+    return true;
+  } catch (err) {
+    if (err instanceof ProviderAuthenticationError) return false;
     throw err;
   }
 }
