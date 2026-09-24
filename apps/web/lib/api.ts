@@ -83,6 +83,7 @@ export interface LibraryCard {
   episodeCount?: number;
   lastAiredSeason?: number | null;
   lastAiredEpisode?: number | null;
+  shelfHold?: boolean;
 }
 
 export interface LibraryResponse {

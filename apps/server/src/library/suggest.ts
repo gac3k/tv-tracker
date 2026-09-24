@@ -5,7 +5,14 @@ export type SuggestReason = "in_progress" | "watch_next" | "watchlist" | "unwatc
 export type ContinueSource = LibraryItem & {
   lastAiredSeason?: number | null;
   lastAiredEpisode?: number | null;
+  /** Shelf-only provider: keep this title off Continue Watching. */
+  shelfHold?: boolean;
 };
+
+/** No account history — the shelf is the next episode, not a watch log. */
+export const SHELF_PROVIDERS = new Set(["apple", "disney", "max"]);
+
+const PILOT_NOISE_PERCENT = 2;
 
 export interface SuggestItem {
   title: string;
@@ -42,6 +49,40 @@ function toItem(item: LibraryItem, reason: SuggestReason, episodeNumber = item.e
   };
 }
 
+/**
+ * Shelf-only providers (Apple TV, Disney+, Max) have no watch history.
+ * Hold a title off Continue Watching when the shelf is offering an unwatched
+ * pilot, or the next season's premiere before it has actually aired.
+ * Unknown last-aired keeps a season gap on the shelf.
+ */
+export function isShelfHold(item: {
+  provider: string;
+  mediaType: string;
+  seasonNumber: number | null;
+  episodeNumber: number | null;
+  progress: number | null;
+  lastAiredSeason?: number | null;
+  lastAiredEpisode?: number | null;
+}): boolean {
+  if (!SHELF_PROVIDERS.has(item.provider) || item.mediaType !== "episode") return false;
+  const season = item.seasonNumber;
+  const episode = item.episodeNumber;
+  if (season == null || episode == null) return false;
+
+  if (season === 1 && episode === 1 && item.progress != null && item.progress < PILOT_NOISE_PERCENT) {
+    return true;
+  }
+
+  // Up Next after a season finale: S(n+1)E1 on the shelf before that episode airs.
+  if (episode !== 1 || season <= 1) return false;
+  if (item.progress != null && item.progress >= PILOT_NOISE_PERCENT) return false;
+  const lastSeason = item.lastAiredSeason;
+  const lastEpisode = item.lastAiredEpisode;
+  if (lastSeason == null || lastEpisode == null) return false;
+  const premiereAired = lastSeason > season || (lastSeason === season && lastEpisode >= episode);
+  return !premiereAired;
+}
+
 /** True when TMDB still has an aired episode after the one just finished. Unknown last-aired keeps the title. */
 export function hasAvailableNext(item: {
   seasonNumber: number | null;
@@ -66,6 +107,7 @@ export function pickContinue(items: ContinueSource[], limit = 5): SuggestItem[] 
   const continueWatching: SuggestItem[] = [];
   const watchNext: SuggestItem[] = [];
   for (const item of items) {
+    if (item.shelfHold) continue;
     if (isInProgress(item)) {
       continueWatching.push(toItem(item, "in_progress"));
     } else if (item.mediaType === "episode" && item.completed && hasAvailableNext(item)) {

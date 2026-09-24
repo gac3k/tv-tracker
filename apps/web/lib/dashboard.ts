@@ -1,9 +1,9 @@
 import type { LibraryCard } from "./api";
 
 export function isInProgressCard(
-  item: Pick<LibraryCard, "completed" | "progress" | "remainingSeconds" | "source">
+  item: Pick<LibraryCard, "completed" | "progress" | "remainingSeconds" | "source" | "shelfHold">
 ): boolean {
-  if (item.completed) return false;
+  if (item.completed || item.shelfHold) return false;
   return (
     (item.progress != null && item.progress > 0) ||
     item.remainingSeconds != null ||
@@ -71,6 +71,8 @@ export function assertDashboardSplit(): void {
   if (rows.watchNext[0]?.episodeNumber !== 5) throw new Error("watch next +1");
   if (splitDashboard([caughtUp]).watchNext.length !== 0) throw new Error("caught up hidden");
   if (splitDashboard([moreAired]).watchNext[0]?.episodeNumber !== 5) throw new Error("unfinished kept");
+  const held = { ...mid, key: "e", progress: 0, seasonNumber: 2, episodeNumber: 1, shelfHold: true };
+  if (splitDashboard([held]).continueWatching.length !== 0) throw new Error("shelf hold hidden");
 }
 
 if (process.argv[1]?.includes("dashboard.ts")) {

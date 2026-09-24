@@ -21,6 +21,7 @@ import {
 } from "./aggregate";
 import { applyOverride, isHidden, overrideMap, type OverrideAction } from "./overrides";
 import { pickPlayback, toPlaybackLaunch, type PlaybackLaunch } from "./playback";
+import { isShelfHold, SHELF_PROVIDERS } from "./suggest";
 import { readAppSettings } from "../settings/app-settings";
 import { logger } from "../logger";
 import { PluginRegistry } from "../plugins/registry.service";
@@ -54,6 +55,8 @@ export interface LibraryCard extends LibraryItem {
   /** Latest aired episode from TMDB, when known. Watch Next uses this to hide caught-up series. */
   lastAiredSeason?: number | null;
   lastAiredEpisode?: number | null;
+  /** Shelf-only provider parked before a real Continue Watching entry exists. */
+  shelfHold?: boolean;
 }
 
 export interface LibraryResponse {
@@ -244,6 +247,9 @@ export class LibraryService {
       if (status === "in_progress") {
         titles = titles.filter(isContinueTitle);
         await this.attachLastAired(titles);
+        for (const card of titles) {
+          if (isShelfHold(card)) card.shelfHold = true;
+        }
       } else if (status !== "all") {
         titles = titles.filter((card) => matchesStatus(card, status));
       }
@@ -285,9 +291,9 @@ export class LibraryService {
     const targets = cards.filter(
       (card) =>
         card.mediaType === "episode" &&
-        card.completed &&
         card.artwork?.tmdbType === "tv" &&
-        card.artwork.tmdbId
+        card.artwork.tmdbId &&
+        (card.completed || SHELF_PROVIDERS.has(card.provider))
     );
     if (targets.length === 0) return;
 
